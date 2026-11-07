@@ -62,6 +62,10 @@ Once the game is hosted at an `https://` address, open it in **Safari**, tap **S
 
 Hosting options: GitHub Pages (free for public repos; private repos need a paid GitHub plan), or drag the folder onto Netlify Drop or Cloudflare Pages. Everything is relative-pathed, so it works from any sub-folder.
 
+### iPhone and iPad app (App Store)
+
+The `ios/` folder is a native app made with [Capacitor](https://capacitorjs.com). It ships the single-file build (`www/index.html`), so it plays fully offline. Build it on a Mac with `npm install`, `npm run build`, `npx cap sync ios`, `npx cap open ios`. [`docs/app-store/CHECKLIST.md`](docs/app-store/CHECKLIST.md) walks through running it on a device, uploading to TestFlight and submitting, and [`docs/app-store/`](docs/app-store/) also has the listing text and ready-sized screenshots. The privacy policy is `privacy.html`.
+
 ### Single-file build
 
 ```bash

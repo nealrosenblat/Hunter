@@ -16,6 +16,12 @@
   },
   "homepage": "https://github.com/nealrosenblat/Hunter#readme",
   "devDependencies": {
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
+    "@fontsource/bungee": "^5.3.0",
+    "@fontsource/courier-prime": "^5.3.0",
+    "@fontsource/rubik": "^5.3.0",
     "esbuild": "^0.24.0",
     "three": "^0.170.0"
   },

@@ -918,14 +918,16 @@ export class WarehouseScene extends Scene {
     const g = this.game;
     await this.startCut();
     g.audio.stopMusic(0.5);
-    for (const [i, c] of this.chars.entries()) { if (c.down) { c.down = false; c.hp = 40; } c.x = i ? 1.3 : -1.3; c.z = 63.5; c.yaw = 0; c.diveT = 0; c.pose = 'aim'; }
+    for (const [i, c] of this.chars.entries()) { if (c.down) { c.down = false; c.hp = 40; } c.x = i ? 1.3 : -1.3; c.z = 65.5; c.yaw = 0; c.diveT = 0; c.pose = 'aim'; }
+    // the open door into the lair swings to exactly where the camera sits behind the cops
+    for (const d of this.doors) if (d.unlocks === 'C') d.pivot.visible = false;
     const b = this.boss;
     b.x = 0; b.z = 85.4; b.yaw = Math.PI;
     b.pose = 'hips';
     this.setCut([0, 2.0, 79.5], [0, 1.8, 85.4]);
     await this.cut(async () => {
       await this.say('duke', "Well, well. Hammer and Delgado. You're just in time for the last dance.");
-      this.setCut([0.3, 1.8, 67.5], [0, 1.6, 63.5]);
+      this.setCut([0.3, 1.8, 69.5], [0, 1.6, 65.5]);
       await this.say('hammer', "Music's over, Duke.");
       this.setCut([0.5, 1.95, 83.2], [0, 1.95, 85.4]);
       b.pose = 'point';

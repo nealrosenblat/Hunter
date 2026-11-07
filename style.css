@@ -1,3 +1,10 @@
+/* Fonts ship with the game (SIL Open Font License, see fonts/), so it works offline and in the App Store build. */
+@font-face { font-family: 'Bungee'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/bungee-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Courier Prime'; font-style: normal; font-weight: 700; font-display: swap; src: url('fonts/courier-prime-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Rubik'; font-style: normal; font-weight: 500; font-display: swap; src: url('fonts/rubik-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Rubik'; font-style: normal; font-weight: 700; font-display: swap; src: url('fonts/rubik-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Rubik'; font-style: normal; font-weight: 900; font-display: swap; src: url('fonts/rubik-latin-900-normal.woff2') format('woff2'); }
+
 :root {
   --ink: #ffffff;
   --pink: #ff3fa4;

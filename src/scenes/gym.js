@@ -462,16 +462,17 @@ export class GymScene extends WarehouseScene {
     const g = this.game;
     await this.startCut();
     g.audio.stopMusic(0.5);
-    for (const [i, c] of this.chars.entries()) { if (c.down) { c.down = false; c.hp = 40; } c.x = i ? 1.3 : -1.3; c.z = 63.5; c.yaw = 0; c.diveT = 0; c.pose = 'aim'; }
+    for (const [i, c] of this.chars.entries()) { if (c.down) { c.down = false; c.hp = 40; } c.x = i ? 1.3 : -1.3; c.z = 65.5; c.yaw = 0; c.diveT = 0; c.pose = 'aim'; }
     // a kicked-in door can land right in the shot; tidy it away
-    for (const d of this.doors) if (d.open && Math.abs(d.pivot.position.z - d.z) > 0.5) d.pivot.visible = false;
+    // and the door into this room swings to exactly where the camera sits behind the cops
+    for (const d of this.doors) if ((d.open && Math.abs(d.pivot.position.z - d.z) > 0.5) || d.unlocks === 'C') d.pivot.visible = false;
     const b = this.boss;
     b.x = 0; b.z = 86.2; b.yaw = Math.PI;
     b.pose = 'aeroFlex';
     this.setCut([0.4, 1.9, 80.6], [0, 1.9, 86.2]);
     await this.cut(async () => {
       await this.say('vigor', 'Hammer. Delgado. You missed the nine o\'clock class.');
-      this.setCut([0.3, 1.8, 67.5], [0, 1.6, 63.5]);
+      this.setCut([0.3, 1.8, 69.5], [0, 1.6, 65.5]);
       await this.say('hammer', "We're here for the eleven o'clock. Murder One.");
       this.setCut([-1.2, 0.7, 83.8], [0, 0.45, 86.2]);
       b.pose = 'hips';

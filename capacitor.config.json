@@ -1,0 +1,12 @@
+{
+  "appId": "com.nealrosenblat.hammerdelgado",
+  "appName": "Hammer & Delgado",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": false,
+    "backgroundColor": "#000000",
+    "preferredContentMode": "mobile",
+    "limitsNavigationsToAppBoundDomains": false
+  }
+}
