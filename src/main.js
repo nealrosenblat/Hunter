@@ -3,6 +3,7 @@ import { Input } from './input.js';
 import { Audio } from './audio.js';
 import { UI } from './ui.js';
 import { TouchControls } from './touch.js';
+import { preventZoom } from './nozoom.js';
 import { newStats } from './stats.js';
 import { writeSave, clearSave, SAVE_SCENES } from './save.js';
 import { TitleScene } from './scenes/title.js';
@@ -74,6 +75,7 @@ class Game {
     this.audio = new Audio();
     this.ui = new UI(this);
     this.touch = new TouchControls(this);
+    preventZoom();
     this.mode = this.params.get('players') === '2' ? 2 : 1;
     this.stats = newStats();
     this.snapshot = newStats();
