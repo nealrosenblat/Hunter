@@ -84,7 +84,9 @@ export class CreditsScene extends Scene {
       {
         len: 4.8,
         start() {
-          C.setCredit(`<div class="card-center"><div class="k">EPISODE 1</div><div class="t">THE POLYESTER CONNECTION</div></div>`);
+          C.setCredit(C.params.ep === 2
+            ? `<div class="card-center"><div class="k">EPISODE 2</div><div class="t">DEATH WEARS LEG WARMERS</div></div>`
+            : `<div class="card-center"><div class="k">EPISODE 1</div><div class="t">THE POLYESTER CONNECTION</div></div>`);
           C.hammer.root.position.set(-1.2, 0, 230); C.hammer.root.rotation.y = Math.PI;
           C.delgado.root.position.set(1.2, 0, 230.5); C.delgado.root.rotation.y = Math.PI;
           C.car.root.position.set(-3, 0, 245); C.car.root.rotation.y = 0.3;
@@ -125,7 +127,7 @@ export class CreditsScene extends Scene {
     this.done = true;
     this.run(async () => {
       await this.w(this.game.ui.fade(1, 0.7));
-      this.game.goto('briefing');
+      this.game.next();
     });
   }
 

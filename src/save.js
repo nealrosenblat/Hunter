@@ -1,12 +1,8 @@
 // Remembers which scene you reached (and your case-file stats) on this device.
 const KEY = 'hammer-delgado-save-v1';
-export const SAVE_SCENES = {
-  credits: 'OPENING CREDITS',
-  briefing: "THE CAPTAIN'S OFFICE",
-  chase: 'THE RIVER CHASE',
-  warehouse: "THE DUKE'S WAREHOUSE",
-  verdict: 'THE VERDICT',
-};
+import { SCENE_LABELS } from './episodes.js';
+
+export const SAVE_SCENES = SCENE_LABELS;
 export function writeSave(scene, mode, stats) {
   try { localStorage.setItem(KEY, JSON.stringify({ scene, mode, stats, at: Date.now() })); } catch (_) { /* storage unavailable */ }
 }

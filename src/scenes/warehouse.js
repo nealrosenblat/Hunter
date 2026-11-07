@@ -1009,7 +1009,7 @@ export class WarehouseScene extends Scene {
       if (!counted.wfm) g.stats.wfm++;
     });
     await this.w(ui.fade(1, 0.8));
-    g.goto('verdict');
+    g.next();
   }
 
   // ------------------------------------------------------------------ HUD

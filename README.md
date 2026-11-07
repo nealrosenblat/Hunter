@@ -1,12 +1,12 @@
 # Hammer & Delgado
 
-**Season 1, Episode 1: "The Polyester Connection"**
+**Season 1 — Episode 1: "The Polyester Connection" · Episode 2: "Death Wears Leg Warmers"**
 
 A browser game in the style of a late-90s Nintendo 64 title. It's an affectionate parody of 1980s TV cop shows: a tough L.A. detective with a mullet and a .44 Magnum named Gerald, his much more competent partner, a captain who keeps yelling about fruit carts, and a brown sedan that's falling apart.
 
 All of the characters, places and music are original. The music and sound effects are synthesized live in the browser, and every model and texture is generated in code. The game ships no image or audio files.
 
-## The episode
+## Episode 1: "The Polyester Connection"
 
 1. **Cold open and credits:** a TV-style opening sequence with a synth-and-sax theme.
 2. **The Captain's office:** you're briefed on a counterfeit-jeans ring run by *the Disco Duke*.
@@ -14,6 +14,16 @@ All of the characters, places and music are original. The music and sound effect
 4. **The Duke's warehouse:** a third-person shootout through three rooms. Kick doors in (Hammer) or open them politely (Delgado), dive in slow motion, eat donuts to heal, then fight the Disco Duke on his light-up dance floor.
 5. **The verdict:** the Captain grades your case file, including collateral damage, the Brougham's repair bill, and how many times your partner has been taken hostage this season.
 6. **Freeze frame.** Roll credits.
+
+## Episode 2: "Death Wears Leg Warmers"
+
+1. **The Captain's office:** Rick Vigor's accountant has been found strangled with a pink leg warmer in the sauna of the Vigor Body Temple. Accounting has returned exactly one chair.
+2. **Undercover aerobics:** a rhythm game. Hit the moves on the beat in the 9 PM Power Hour without blowing your cover, while Hammer suffers in the back row with Gerald hidden in his sweatpants. In co-op, each player gets a lane.
+3. **The boardwalk chase:** Vigor flees down Ocean Front Walk at night. Surfboards, beach umbrellas, hot dog stands, roller skaters and, somehow, fruit carts.
+4. **The Vigor Body Temple:** a shootout through the lobby and juice bar, the weight room, and Vigor's mirrored private studio, ending in a boss fight with a man who throws dumbbells.
+5. **The verdict** and the freeze frame.
+
+Finishing Episode 1 leaves your CONTINUE pointing at Episode 2.
 
 ## Players
 
@@ -67,7 +77,7 @@ Point Pages at the repository root on the default branch. `index.html`, `vendor/
 
 ### Debug URL parameters
 
-- `?scene=title|credits|briefing|chase|warehouse|verdict|ending` jumps to a scene.
+- `?scene=title|credits|briefing|chase|warehouse|verdict|ending` jumps to an Episode 1 scene; `credits2|briefing2|aerobics|chase2|gym|verdict2|ending2` jumps to an Episode 2 scene.
 - `&players=2` starts in co-op.
 - `&auto` auto-advances dialogue.
 - `&god` makes the cops invulnerable.

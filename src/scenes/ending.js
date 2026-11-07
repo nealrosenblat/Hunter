@@ -49,7 +49,51 @@ export class EndingScene extends Scene {
   canSkip() { return this.rollEl ? !this.done && this.rollY > 1 : super.canSkip(); }
   skip() { if (this.rollEl) this.finish(); else super.skip(); }
 
+  async scriptLines2() {
+    const g = this.game, ui = g.ui;
+    await this.w(ui.fade(0, 0.9));
+    await this.w(ui.locationCard(['OUTSIDE DIVISION 7', 'THAT EVENING'], 1.0));
+    this.talk = 'del';
+    await this.say('delgado', 'Candi Kane called. She wants us back for Thursday night\'s class.');
+    this.talk = 'ham'; this.poses.ham = 'shrug';
+    await this.say('hammer', "I'm busy Thursday.");
+    this.talk = 'del';
+    await this.say('delgado', 'She said you can bring Gerald.');
+    this.talk = 'ham'; this.poses.ham = 'cross';
+    await this.say('hammer', '...What time?');
+    this.talk = null;
+    // the trunk gives up, and reveals something
+    const car = this.car;
+    this.trunkOpen = true;
+    g.audio.sfx('creak');
+    const lw = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.12, 0.42, 7), new THREE.MeshLambertMaterial({ color: 0xff3fa4 }));
+    lw.position.set(-4.4, 1.0, 12.0);
+    this.scene.add(lw);
+    this.lw = { m: lw, t: 0 };
+    await this.wait(1.2);
+    this.poses.del = 'point';
+    this.del.root.rotation.y = 0.9;
+    this.talk = 'del';
+    await this.say('delgado', 'Rex. Why is there a pink leg warmer in your trunk?');
+    this.talk = 'ham'; this.poses.ham = 'gunUp';
+    await this.say('hammer', 'Evidence.');
+    this.talk = 'del'; this.poses.del = 'hips';
+    await this.say('delgado', "The evidence is in the evidence locker. That's yours, isn't it.");
+    this.talk = 'ham'; this.poses.ham = 'shrug';
+    await this.say('hammer', "...They're very warm.");
+    this.talk = null;
+    this.poses = { ham: 'raise', del: 'hips' };
+    this.del.root.rotation.y = -0.6;
+    await this.wait(0.55);
+    this.frozen = true;
+    g.canvas.classList.add('freeze');
+    g.audio.stopMusic(0.1);
+    g.audio.sfx('freeze');
+    await this.wait(1.4);
+  }
+
   async scriptLines() {
+    if (this.params.ep === 2) return this.scriptLines2();
     const g = this.game, ui = g.ui;
     await this.w(ui.fade(0, 0.9));
     await this.w(ui.locationCard(['OUTSIDE DIVISION 7', 'LATER THAT EVENING'], 1.0));
@@ -87,6 +131,7 @@ export class EndingScene extends Scene {
   }
 
   roll() {
+    if (this.params.ep === 2) return this.roll2();
     const g = this.game, s = g.stats;
     const fruit = s.items['FRUIT CART'] || 0;
     g.ui.L.scene.innerHTML = `<div class="roll" id="roll">
@@ -112,8 +157,45 @@ export class EndingScene extends Scene {
     g.audio.playSong('theme');
   }
 
+  roll2() {
+    const g = this.game, s = g.stats;
+    const fruit = s.items['FRUIT CART'] || 0;
+    const palms = s.items['PALM TREE'] || 0;
+    g.ui.L.scene.innerHTML = `<div class="roll" id="roll">
+      <div class="h">HAMMER &amp; DELGADO</div>
+      <div>starring</div><div><b>CHET MANLY</b> · <b>VALERIE STARR</b></div>
+      <div>with <b>BURT KOWALCZYK</b></div>
+      <div>and <b>THE BROUGHAM</b> as Itself (Primer Door Courtesy of Motor Pool)</div>
+      <div class="h">GUEST STARS</div>
+      <div>RICK VIGOR as Himself (Allegedly)</div>
+      <div>CANDI KANE as Herself (Definitely)</div>
+      <div class="h">ALSO FEATURING</div>
+      <div>The 9 PM Power Hour · Spotters #1–14 · Two Guys Carrying Glass · Gerald (a .44 Magnum, concealed)</div>
+      <div>Leg Warmer Wrangler ........ Sal</div>
+      <div>Sand Removal ........ Metro Motor Pool</div>
+      <div>Choreography ........ Nobody Would Take Credit</div>
+      <div class="h">IN MEMORIAM</div>
+      <div>${s.hubcaps} hubcap${s.hubcaps === 1 ? '' : 's'}${s.doorLost ? ' · one primer door' : ''} · ${fruit} fruit cart${fruit === 1 ? '' : 's'}${palms ? ' · ' + palms + ' palm tree' + (palms === 1 ? '' : 's') : ''} · Morty Feldman's books</div>
+      <div style="margin-top:1.4em;opacity:.8">Filmed on location in Venice and Beverly Hills. No real persons, police departments, or health clubs were depicted. Please stretch.</div>
+      <div class="next">NEXT WEEK: "BAD MOON OVER MALIBU"</div>
+      <div class="h" style="margin-top:2.2em">THANKS FOR WATCHING</div>
+    </div>`;
+    this.rollEl = g.ui.L.scene.querySelector('#roll');
+    this.rollY = 0;
+    g.audio.playSong('theme');
+  }
+
   update(dt) {
     const g = this.game;
+    if (this.trunkOpen && !this.frozen) this.car.trunk.rotation.x += (0.9 - this.car.trunk.rotation.x) * Math.min(1, dt * 6);
+    if (this.lw && !this.frozen && this.lw.t < 1) {
+      // the leg warmer springs out of the trunk and lands at their feet
+      const L = this.lw;
+      L.t = Math.min(1, L.t + dt / 0.9);
+      const k = L.t;
+      L.m.position.set(-4.4 + (-2.6 + 4.4) * k, 1.0 + Math.sin(k * Math.PI) * 1.5 - k * 0.88, 12.0 + (14.6 - 12.0) * k);
+      L.m.rotation.set(k * 9, 0, k * 6 + (k >= 1 ? Math.PI / 2 : 0));
+    }
     if (this.rollEl) {
       this.rollY += dt * 52;
       const h = this.rollEl.offsetHeight + innerHeight;

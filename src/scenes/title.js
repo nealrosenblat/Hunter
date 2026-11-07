@@ -4,6 +4,7 @@ import { buildStreet } from '../env.js';
 import { makeBrougham, Rig, SPECS } from '../models.js';
 import { newStats } from '../stats.js';
 import { readSave, SAVE_SCENES } from '../save.js';
+import { EPISODES, SELECTABLE } from '../episodes.js';
 
 export class TitleScene extends Scene {
   enter() {
@@ -25,7 +26,7 @@ export class TitleScene extends Scene {
     g.ui.L.scene.innerHTML = `
       <div class="title-wrap">
         <div class="logo"><span class="l1">HAMMER</span><span class="l2">&amp;</span><span class="l3">DELGADO</span></div>
-        <div class="tagline">SEASON 1 · EPISODE 1 · "THE POLYESTER CONNECTION"</div>
+        <div class="tagline">SEASON 1 · NOW WITH 2 EPISODES</div>
       </div>
       <div class="press">${matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window ? 'TAP TO START' : 'PRESS START'}</div>
       <div class="legal">An affectionate parody of 1980s TV cop shows. All characters are fictional. No fruit carts were harmed. (Several were.)</div>`;
@@ -58,33 +59,45 @@ export class TitleScene extends Scene {
       if (c === 'controls') { await this.w(g.showControls()); continue; }
       if (c === 'continue') {
         g.mode = save.mode === 2 ? 2 : 1;
-        g.stats = { ...newStats(), ...save.stats };
+        g.stats = { ...newStats(save.stats?.ep || 1), ...save.stats };
         await this.w(g.ui.fade(1, 0.6));
         return g.goto(save.scene);
       }
       if (c === 'new') {
-        const pl = await this.players(save ? `Starting over replaces your saved spot: <b>${SAVE_SCENES[save.scene]}</b>.` : '');
-        if (pl) return this.start(pl, 'credits');
+        for (;;) {
+          const ep = await this.episode('NEW GAME');
+          if (!ep) break;
+          const pl = await this.players(save ? `Starting over replaces your saved spot: <b>${SAVE_SCENES[save.scene]}</b>.` : '');
+          if (pl) return this.start(pl, ep.scenes[0], ep.n);
+        }
         continue;
       }
       if (c === 'select') {
         for (;;) {
-          const sc = await this.w(g.ui.menu(
-            [
-              { label: 'COLD OPEN & CREDITS', value: 'credits' },
-              { label: "THE CAPTAIN'S OFFICE", value: 'briefing' },
-              { label: 'THE L.A. RIVER CHASE', value: 'chase' },
-              { label: "THE DUKE'S WAREHOUSE", value: 'warehouse' },
-              { label: '◂ BACK', value: null },
-            ],
-            { cls: 'low', title: 'SCENE SELECT', back: null },
-          ));
-          if (!sc) break;
-          const pl = await this.players('');
-          if (pl) return this.start(pl, sc);
+          const ep = await this.episode('SCENE SELECT');
+          if (!ep) break;
+          let picked = false;
+          for (;;) {
+            const sc = await this.w(g.ui.menu(
+              [...SELECTABLE[ep.n].map(([value, label]) => ({ label, value })), { label: '◂ BACK', value: null }],
+              { cls: 'low', title: `EPISODE ${ep.n}`, back: null },
+            ));
+            if (!sc) break;
+            const pl = await this.players('');
+            if (pl) { picked = true; await this.start(pl, sc, ep.n); break; }
+          }
+          if (picked) return;
         }
       }
     }
+  }
+
+  /** Pick an episode, or null for BACK. */
+  episode(title) {
+    return this.w(this.game.ui.menu(
+      [...EPISODES.map((e) => ({ label: `EP ${e.n} · ${e.title}`, value: e })), { label: '◂ BACK', value: null }],
+      { cls: 'low', title, back: null },
+    ));
   }
 
   /** 1 or 2 players, or null for BACK. */
@@ -95,10 +108,10 @@ export class TitleScene extends Scene {
     ));
   }
 
-  async start(players, scene) {
+  async start(players, scene, ep = 1) {
     const g = this.game;
     g.mode = players;
-    g.stats = newStats();
+    g.stats = newStats(ep);
     await this.w(g.ui.fade(1, 0.6));
     g.goto(scene);
   }

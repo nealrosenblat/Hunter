@@ -3,7 +3,7 @@ import { Scene } from '../scene.js';
 import { Rig, SPECS, M, B, box, cyl, texMat } from '../models.js';
 import { tex } from '../textures.js';
 import { makeSign } from '../env.js';
-import { grade, GRADE_LINES } from '../stats.js';
+import { grade, GRADE_LINES, GRADE_LINES_2 } from '../stats.js';
 import { fmtMoney, fmtTime } from '../util.js';
 
 const SHOTS = {
@@ -33,6 +33,13 @@ export class OfficeScene extends Scene {
     this.camera.fov = 52;
     this.setShot('wide');
     this.pausable = true;
+    this.ep = this.params.ep === 2 ? 2 : 1;
+    if (this.ep === 2) {
+      // Accounting gave ONE chair back. It goes to whoever closes the case.
+      const seat = box(0.55, 0.08, 0.5, M(0x7a2a2a)); seat.position.set(0, 0.48, -0.8); this.scene.add(seat);
+      const back = box(0.55, 0.6, 0.08, M(0x7a2a2a)); back.position.set(0, 0.8, -1.03); this.scene.add(back);
+      for (const [x, z] of [[-0.23, -0.6], [0.23, -0.6], [-0.23, -1.0], [0.23, -1.0]]) { const leg = box(0.04, 0.46, 0.04, M(0x333333)); leg.position.set(x, 0.23, z); this.scene.add(leg); }
+    }
     g.audio.playSong('office');
     this.run(() => (this.params.mode === 'verdict' ? this.verdict() : this.briefing()));
   }
@@ -115,11 +122,12 @@ export class OfficeScene extends Scene {
     await this.cut(() => this.briefingLines(), async () => {
       g.audio.stopMusic(0.4);
       await this.w(g.ui.fade(1, 0.4));
-      g.goto('chase');
+      g.next();
     });
   }
 
   async briefingLines() {
+    if (this.ep === 2) return this.briefingLines2();
     const g = this.game;
     await this.w(g.ui.fade(0, 0.8));
     await this.w(g.ui.locationCard(['METRO POLICE · DIVISION 7', "CAPTAIN BRANNIGAN'S OFFICE", '8:15 PM']));
@@ -148,7 +156,7 @@ export class OfficeScene extends Scene {
     await this.wait(1.6);
     g.audio.stopMusic(0.6);
     await this.w(g.ui.fade(1, 0.6));
-    g.goto('chase');
+    g.next();
   }
 
   async verdict() {
@@ -164,10 +172,85 @@ export class OfficeScene extends Scene {
     await this.showCard(gr);
     g.audio.stopMusic(0.8);
     await this.w(g.ui.fade(1, 0.7));
-    g.goto('ending');
+    g.next();
+  }
+
+  async briefingLines2() {
+    const g = this.game;
+    await this.w(g.ui.fade(0, 0.8));
+    await this.w(g.ui.locationCard(['METRO POLICE · DIVISION 7', "CAPTAIN BRANNIGAN'S OFFICE", '7:40 PM']));
+    await this.line('captain', 'Sit down.', 'wide');
+    await this.line('delgado', '...Captain. There is a chair.', 'duo', { delgado: 'point' });
+    await this.line('captain', 'Accounting gave me back ONE chair. It goes to whoever closes this case.', 'captain', { captain: 'point', delgado: 'cross' });
+    await this.line('hammer', "I'll stand. Builds character.", 'hammer', { captain: 'idle', hammer: 'cross' });
+    await this.line('captain', 'Morty Feldman. Accountant. Found this morning in the sauna of the Vigor Body Temple, Venice Beach.', 'captain');
+    await this.line('captain', 'Strangled. With a LEG WARMER.', 'closeCap', { captain: 'slam' }, 'thump');
+    this.poses.captain = 'idle';
+    await this.line('hammer', '...What color?', 'hammer', { hammer: 'idle' });
+    await this.line('captain', 'PINK, Hammer. Does it MATTER?', 'captain', { captain: 'raise' });
+    await this.line('hammer', 'It matters to the leg warmer.', 'hammer', { captain: 'idle', hammer: 'shrug' });
+    await this.line('delgado', "Feldman kept the books for Rick Vigor. 'Feel the Vigor.' He sells lifetime memberships on TV at three in the morning.", 'delgado', { delgado: 'hips', hammer: 'idle' });
+    await this.line('captain', "Downtown thinks Vigor's washing mob money through those memberships. Nine thousand dollars apiece. Nobody ever shows up to use them.", 'captain', { captain: 'point' });
+    await this.line('delgado', 'Vigor runs a Power Hour class tonight. I go in undercover.', 'delgado', { captain: 'idle', delgado: 'cross' });
+    await this.line('captain', 'Good. Hammer goes with you.', 'captain', { captain: 'point' });
+    await this.line('hammer', 'Undercover. In an aerobics class.', 'hammer', { hammer: 'shrug' });
+    await this.line('captain', 'In SWEATPANTS, Hammer. And leave the cannon at home.', 'closeCap', { captain: 'raise', hammer: 'idle' });
+    this.poses.captain = 'idle';
+    this.poses.hammer = 'gunUp';
+    this.ham.gun.visible = true;
+    g.audio.sfx('spin', 0.7);
+    await this.line('hammer', 'Gerald goes where I go.', 'hammer');
+    await this.line('delgado', 'Rex. Where exactly are you going to hide a .44 Magnum in a pair of sweatpants?', 'delgado', { delgado: 'hips' });
+    this.setShot('hammer');
+    await this.wait(0.7);
+    await this.line('hammer', 'Works for me.', 'hammer');
+    g.audio.sfx('wfm');
+    g.ui.worksForMe();
+    await this.wait(1.6);
+    g.audio.stopMusic(0.6);
+    await this.w(g.ui.fade(1, 0.6));
+    g.next();
+  }
+
+  async verdictLines2() {
+    const g = this.game;
+    const s = g.stats;
+    const fruit = s.items['FRUIT CART'] || 0;
+    await this.w(g.ui.fade(0, 0.8));
+    await this.w(g.ui.locationCard(['METRO POLICE · DIVISION 7', 'THE NEXT MORNING']));
+    await this.line('captain', 'Sit down. ...Not you, Hammer.', 'wide');
+    await this.line('captain', 'Rick Vigor is in custody. Murder one, money laundering, and fourteen counts of false advertising.', 'captain');
+    const dg = s.danceGrade || 'C';
+    await this.line('captain', `I also have a report from a Miss Candi Kane, aerobics instructor. She gave your class performance a ${dg}.`, 'closeCap', { captain: 'point' });
+    if (dg <= 'B') await this.line('captain', 'She wants to know if Delgado teaches on weekends.', 'captain', { captain: 'idle' });
+    else await this.line('captain', "She says, and I quote, 'the big one moves like a filing cabinet falling down a staircase.'", 'captain', { captain: 'idle' });
+    await this.line('hammer', 'I was undercover.', 'hammer', { hammer: 'shrug' });
+    this.poses.hammer = 'idle';
+    if (fruit > 0) {
+      await this.line('captain', `${fmtMoney(s.collateral)} in damages. Including ${fruit === 1 ? 'ONE FRUIT CART' : fruit + ' FRUIT CARTS'}. ON A BEACH.`, 'closeCap', { captain: 'raise' });
+      await this.line('hammer', 'Technically it was a boardwalk.', 'hammer', { captain: 'idle', hammer: 'cross' });
+    } else if (s.collateral > 2500) {
+      await this.line('captain', `${fmtMoney(s.collateral)} in damages, Hammer. Surfboards. Hot dogs. A palm tree that was older than I am.`, 'captain', { captain: 'point' });
+      await this.line('hammer', 'It had a good run.', 'hammer', { captain: 'idle' });
+    } else {
+      await this.line('captain', `Only ${fmtMoney(s.collateral)} in damages. Delgado, was he driving?`, 'captain');
+      await this.line('delgado', 'He was, Captain. I was surprised too.', 'delgado');
+    }
+    await this.line('captain', `The Brougham needs ${fmtMoney(s.repair)} in repairs. AGAIN.`, 'captain');
+    await this.line('delgado', s.doorLost ? 'The new door fell off, Captain. The NEW one.' : "She's still got the primer door. It's growing on me.", 'delgado', { delgado: 'cross' });
+    await this.line('captain', `And Delgado. Taken hostage. Again. That's ${s.hostage}.`, 'captain', { captain: 'point' });
+    await this.line('delgado', "At this point it's basically cardio.", 'delgado', { delgado: 'hips' });
+    await this.line('captain', 'Delgado. The chair is yours.', 'closeCap', { captain: 'idle' });
+    await this.line('hammer', 'What do I get?', 'hammer', { hammer: 'shrug' });
+    const hot = s.items['HOT DOG STAND'];
+    await this.line('captain', hot ? 'You get the bill for the hot dog stand.' : 'You get to stand. Builds character.', 'captain', { captain: 'point', hammer: 'idle' });
+    const gr = grade(s);
+    await this.line('captain', GRADE_LINES_2[gr.letter], 'captain', { captain: gr.letter <= 'B' ? 'idle' : 'raise' });
+    this.poses.captain = 'idle';
   }
 
   async verdictLines() {
+    if (this.ep === 2) return this.verdictLines2();
     const g = this.game;
     const s = g.stats;
     const fruit = s.items['FRUIT CART'] || 0;
@@ -209,8 +292,8 @@ export class OfficeScene extends Scene {
     this.game.ui.L.scene.innerHTML = `
       <div class="verdict">
         <div class="stamp">${gr.letter}</div>
-        <h2>CASE FILE #86-0417</h2>
-        <div class="case">"THE POLYESTER CONNECTION" · PEOPLE v. VINCENT "THE DISCO DUKE" MALONE</div>
+        <h2>CASE FILE #${this.ep === 2 ? '86-0522' : '86-0417'}</h2>
+        <div class="case">${this.ep === 2 ? '"DEATH WEARS LEG WARMERS" · PEOPLE v. RICHARD "RICK" VIGOR' : '"THE POLYESTER CONNECTION" · PEOPLE v. VINCENT "THE DISCO DUKE" MALONE'}</div>
         <table>
           <tr><td>Time on the case</td><td>${fmtTime(total)}</td></tr>
           <tr><td>Shots fired (accuracy)</td><td>${s.shots} (${acc}%)</td></tr>
@@ -219,7 +302,8 @@ export class OfficeScene extends Scene {
           <tr><td>Collateral damage</td><td>${fmtMoney(s.collateral)}</td></tr>
           ${items}
           <tr><td>Brougham repair bill</td><td>${fmtMoney(s.repair)}</td></tr>
-          <tr><td>Duke's car wrecked</td><td>${s.dukeWrecked ? 'YES' : 'NO'}</td></tr>
+          ${this.ep === 2 ? `<tr><td>Aerobics class grade (C. Kane)</td><td>${s.danceGrade || '—'} · best combo ${s.danceBest || 0}</td></tr>` : ''}
+          <tr><td>${this.ep === 2 ? "Vigor's car wrecked" : "Duke's car wrecked"}</td><td>${s.dukeWrecked ? 'YES' : 'NO'}</td></tr>
           <tr><td>"Works for me" moments</td><td>${s.wfm}</td></tr>
           <tr><td>Donuts eaten (evidence)</td><td>${s.donuts}</td></tr>
           <tr><td>Doors kicked / opened politely</td><td>${s.kicked} / ${s.polite}</td></tr>
@@ -227,7 +311,7 @@ export class OfficeScene extends Scene {
           <tr><td>Partner taken hostage this season</td><td>${s.hostage}</td></tr>
           <tr><td>Horn honks (unnecessary)</td><td>${s.horn}</td></tr>
         </table>
-        <div class="quote">Captain's grade: ${gr.letter}. "${GRADE_LINES[gr.letter]}"</div>
+        <div class="quote">Captain's grade: ${gr.letter}. "${(this.ep === 2 ? GRADE_LINES_2 : GRADE_LINES)[gr.letter]}"</div>
         <div class="cont">PRESS ENTER / A</div>
       </div>`;
     this.game.audio.sfx('thump');

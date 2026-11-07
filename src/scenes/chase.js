@@ -13,11 +13,11 @@ const CAR_HL = 2.55, CAR_HW = 1.0;
 const ESCAPE_GAP = 170;
 
 class Track {
-  constructor() {
+  constructor(bend = 0.45) {
     const pts = [new THREE.Vector3(0, 0, -80), new THREE.Vector3(0, 0, 0)];
     let x = 0, z = 0, h = 0;
     for (let i = 0; i < 22; i++) {
-      h = clamp(h + rand(-0.45, 0.45), -1.0, 1.0);
+      h = clamp(h + rand(-bend, bend), -1.0, 1.0);
       x += Math.sin(h) * 150; z += Math.cos(h) * 150;
       pts.push(new THREE.Vector3(x, 0, z));
     }
@@ -53,11 +53,33 @@ class Track {
 const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3();
 const UP = new THREE.Vector3(0, 1, 0);
 
+// Everything that differs between Episode 1 (the L.A. River) and Episode 2 (the Venice boardwalk).
+const EP = {
+  1: {
+    villain: 'duke', villainHud: 'THE DISCO DUKE', toast: 'CATCH THE DUKE!', where: 'in a RIVER', across: 'a RIVER', wreck: "THE DUKE'S RIDE IS TOTALED",
+    card: ['THE L.A. RIVER', '9:52 PM'],
+    ram: ['My PAINT JOB!', 'Watch the fenders, pig!', 'Do you know what this car COST?!'],
+    shot: ['Not the CHROME!', 'You shot my HOOD ORNAMENT!', 'That is a LEASE!'],
+    pillar: ['PILLAR!', '...Pillar.', 'That was a load-bearing pillar, Rex.'],
+    fruit2: "That's two, Rex. The Captain's going to have a stroke.",
+  },
+  2: {
+    villain: 'vigor', villainHud: 'RICK VIGOR', toast: 'CATCH RICK VIGOR!', where: 'on a BOARDWALK', across: 'a BOARDWALK', wreck: "VIGOR'S RIDE IS TOTALED",
+    card: ['OCEAN FRONT WALK · VENICE BEACH', '9:58 PM'],
+    ram: ['My QUADS!', 'This car is a TAX WRITE-OFF!', "I'll sue! My lawyer is a MEMBER!", 'No pain... OW... no gain!'],
+    shot: ['Not the PAINT!', 'My SPOILER!', 'That car has a better body than YOU!'],
+    pillar: ['PALM TREE!', '...Palm tree.', 'Rex, that palm tree was protected.'],
+    fruit2: "That's two, Rex. On a BEACH. The Captain is going to retire.",
+  },
+};
+
 export class ChaseScene extends Scene {
   enter() {
     const g = this.game;
     this.pausable = true;
-    this.track = new Track();
+    this.ep = this.params.ep === 2 ? 2 : 1;
+    this.T = EP[this.ep];
+    this.track = new Track(this.ep === 2 ? 0.3 : 0.45);
     this.buildWorld();
     this.fx = new FX(this.scene, { lights: 2 });
     this.fx.setScale(g.H * 0.85);
@@ -65,7 +87,7 @@ export class ChaseScene extends Scene {
     this.car = makeBrougham();
     this.scene.add(this.car.root);
     this.pc = { s: 40, d: -4, psi: 0, v: 0, damage: 0, hitCD: 0, wallCD: 0, ramCD: 0, roll: 0, pitch: 0, steer: 0, broke: new Set() };
-    this.dukeCar = makeSportsCar();
+    this.dukeCar = this.ep === 2 ? makeSportsCar(0xfaf8f4, '#ff3fa4') : makeSportsCar();
     this.scene.add(this.dukeCar.root);
     this.duke = { s: 76, d: 2, v: 0, targetD: 2, psi: 0, grit: 100, weaveT: 2, goonT: 4, spin: 0, wrecked: false };
     this.shots = [];
@@ -93,6 +115,7 @@ export class ChaseScene extends Scene {
 
   // ------------------------------------------------------------------ world
   buildWorld() {
+    if (this.ep === 2) return this.buildBoardwalk();
     const s = this.scene, T = this.track;
     // day-for-night: obviously daylight, tinted blue, as was the custom
     s.fog = new THREE.Fog(0x4a6a9a, 70, 420);
@@ -162,6 +185,90 @@ export class ChaseScene extends Scene {
     for (let sv = 330; sv < T.length - 250; sv += rand(380, 480)) this.bridges.push(sv);
   }
 
+  /** Episode 2: Ocean Front Walk at night. Same physics profile: the "slopes" are a sand berm (ocean side) and steps up to the shops. */
+  buildBoardwalk() {
+    const s = this.scene, T = this.track;
+    s.fog = new THREE.Fog(0x2a1a48, 60, 380);
+    sky(s, { top: 0x080618, mid: 0x2a1450, horizon: 0xc04a7a, bottom: 0x1a1030, sun: { dir: new THREE.Vector3(-0.8, 0.25, 0.6), color: 0xfff4e0, size: 18 } });
+    this.skyline = skylineRing(s, { color: 0x5a3a7a });
+    s.add(new THREE.HemisphereLight(0xc0a8ff, 0x3a2848, 1.6));
+    const moon = new THREE.DirectionalLight(0xe0d8ff, 1.4);
+    moon.position.set(-40, 50, 20);
+    s.add(moon);
+
+    const walk = new THREE.MeshLambertMaterial({ map: tex('wood'), color: 0xffe0c0, emissive: 0x2a1408 });
+    const sand = new THREE.MeshLambertMaterial({ map: tex('dirt'), color: 0xf4d6a0 });
+    const steps = new THREE.MeshLambertMaterial({ map: tex('brick'), color: 0xffc8d8 });
+    this.waterMat = new THREE.MeshLambertMaterial({ map: texR('water', 1, 1), color: 0x6a7ac8, emissive: 0x0a0a2a });
+    // ocean side (d < 0): sand berm, dune crest, beach, then the Pacific
+    s.add(this.ribbon([[-120, -0.4], [-58, -0.4]], this.waterMat, 0, 1 / 6, 1 / 8));
+    s.add(this.ribbon([[-58, -0.3], [-30, 5.6], [-20, 5.6], [-12, 0]], sand, 0, 1 / 10, 1 / 10));
+    // the walk itself, with a painted bike path
+    s.add(this.ribbon([[-12, 0], [12, 0]], walk, 0, 1 / 6, 1 / 3));
+    s.add(this.ribbon([[-7, 0], [-6.7, 0]], M(0xffd23f), 0.02, 1, 1));
+    s.add(this.ribbon([[-1, 0], [-0.7, 0]], M(0xffd23f), 0.02, 1, 1));
+    // shop side (d > 0): steps up to the storefront plaza
+    s.add(this.ribbon([[12, 0], [20, 5.6]], steps, 0, 1 / 3, 1 / 3));
+    s.add(this.ribbon([[20, 5.6], [46, 5.6]], new THREE.MeshLambertMaterial({ map: tex('concrete'), color: 0xe0d0e8 }), 0, 1 / 8, 1 / 8));
+    const rail = new THREE.MeshLambertMaterial({ map: tex('fence'), transparent: true, alphaTest: 0.4, side: THREE.DoubleSide, color: 0xffc0e0 });
+    s.add(this.ribbon([[21.2, 5.6], [21.2, 6.8]], rail, 0, 1 / 2.2, 1 / 2.2));
+
+    // storefronts with neon
+    const SIGNS = ['MUSCLE BEACH', 'TACOS', 'SKATE RENTAL', 'PSYCHIC', 'T-SHIRTS 3/$10', 'SUNGLASSES', 'HOT DOGS', 'VIGOR BODY TEMPLE', 'ARCADE', 'SURF SHOP', 'PALM READER', 'FROZEN YOGURT'];
+    const NEON = ['#ff3fa4', '#3ef2ff', '#ffd23f', '#9dff5a', '#ff8a3d'];
+    let k = 0;
+    for (let sv = 0; sv < T.length; sv += rand(16, 24)) {
+      const d = rand(27, 29);
+      const yaw = T.world(sv, d, _v);
+      const w = rand(10, 15), h = rand(6, 13);
+      const b = building(w, h, 10, pick([0xf0d0e0, 0xa8e0d8, 0xf6e0a8, 0xe0b0f0, 0xffc8a8, 0xb8d8ff]));
+      b.position.set(_v.x, 5.6 + b.position.y, _v.z);
+      b.rotation.y = yaw;
+      s.add(b);
+      if (Math.random() < 0.7) {
+        const label = SIGNS[k++ % SIGNS.length];
+        const col = pick(NEON);
+        const sign = makeSign(label, { w: Math.min(w * 0.8, 9), h: 1.3, bg: '#120820', fg: col, font: 'bold 46px sans-serif', glow: col });
+        T.world(sv, d - w / 2 - 0.15, _v);
+        sign.position.set(_v.x, 5.6 + Math.min(h - 1.2, 4.6), _v.z);
+        sign.rotation.y = yaw - Math.PI / 2;
+        s.add(sign);
+      }
+    }
+    // palms on both sides, lifeguard towers on the sand, street lights
+    for (let sv = 10; sv < T.length; sv += rand(22, 34)) {
+      for (const side of [-1, 1]) {
+        if (Math.random() < 0.25) continue;
+        if (side > 0 && Math.random() < 0.5) continue;
+        T.world(sv + rand(-4, 4), side > 0 ? rand(20.8, 21.6) : -rand(23, 28), _v);
+        const p = palm(rand(11, 16));
+        p.position.set(_v.x, 5.6, _v.z);
+        s.add(p);
+      }
+    }
+    for (let sv = 60; sv < T.length; sv += rand(140, 220)) {
+      const yaw = T.world(sv, -44, _v);
+      const tower = new THREE.Group();
+      const hut = box(2.6, 1.8, 2.6, M(0x5ab0e0)); hut.position.y = 3.4; tower.add(hut);
+      const roof = box(3.0, 0.2, 3.0, M(0xffffff)); roof.position.y = 4.4; tower.add(roof);
+      for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const leg = box(0.15, 2.6, 0.15, M(0xffffff)); leg.position.set(x, 1.3, z); tower.add(leg); }
+      const num = makeSign(String(10 + Math.floor(sv / 100)), { w: 1.2, h: 0.7, bg: '#e03030', fg: '#ffffff', font: 'bold 48px sans-serif' });
+      num.position.set(1.32, 3.4, 0); num.rotation.y = Math.PI / 2; tower.add(num);
+      tower.position.set(_v.x, 2.6, _v.z); tower.rotation.y = yaw;
+      s.add(tower);
+    }
+    for (let sv = 30; sv < T.length; sv += 70) {
+      for (const side of [-1, 1]) {
+        const yaw = T.world(sv + (side > 0 ? 35 : 0), side * 22.2, _v);
+        const l = streetLight(1);
+        l.position.set(_v.x, 5.6, _v.z);
+        l.rotation.y = yaw + (side > 0 ? -Math.PI / 2 : Math.PI / 2);
+        s.add(l);
+      }
+    }
+    this.bridges = [];
+  }
+
   ribbon(prof, mat, yOff, uScale, vScale) {
     const T = this.track, step = 2;
     const rows = [];
@@ -216,6 +323,22 @@ export class ChaseScene extends Scene {
         this.obs.push({ type: 'pillar', s: sv, d, r: 1.0, rl: 1.0, alive: true, solid: true, mesh: p });
       }
     }
+    if (this.ep === 2) {
+      // palm planters in the middle of the walk: solid, like the river's bridge pillars
+      for (let sv = 330; sv < T.length - 250; sv += rand(300, 420)) {
+        const layout = pick([[-7], [7], [-8, 8], [0]]);
+        for (const d of layout) {
+          const g = new THREE.Group();
+          const pot = box(2.2, 1.0, 2.2, M(0xc8a888, { map: tex('concreteDark') })); pot.position.y = 0.5; g.add(pot);
+          const p = palm(rand(9, 12)); p.position.y = 1.0; g.add(p);
+          const yaw = T.world(sv, d, _v);
+          g.position.copy(_v); g.rotation.y = yaw;
+          this.scene.add(g);
+          this.obs.push({ type: 'pillar', s: sv, d, r: 1.2, rl: 1.2, alive: true, solid: true, mesh: g });
+          this.bridges.push(sv);
+        }
+      }
+    }
     const nearBridge = (s) => this.bridges.some((b) => Math.abs(b - s) < 20);
     const specials = [
       [T.length * 0.28, 'fruit'], [T.length * 0.71, 'fruit'],
@@ -226,7 +349,9 @@ export class ChaseScene extends Scene {
     while (s < T.length - 260) {
       s += rand(26, 46);
       if (nearBridge(s) || specials.some(([sp]) => Math.abs(sp - s) < 25)) continue;
-      const type = pick(['boxes', 'boxes', 'cart', 'barrels', 'wagon', 'wagon', 'tires', 'cart', 'boxes']);
+      const type = this.ep === 2
+        ? pick(['surf', 'umbrella', 'umbrella', 'hotdog', 'cart', 'surf', 'boxes', 'umbrella', 'skates'])
+        : pick(['boxes', 'boxes', 'cart', 'barrels', 'wagon', 'wagon', 'tires', 'cart', 'boxes']);
       this.addObs(type, s, rand(-10.5, 10.5));
     }
   }
@@ -248,6 +373,43 @@ export class ChaseScene extends Scene {
         o.car = w; o.mesh = w.root; o.r = 1.0; o.rl = 2.6; o.value = 4500; o.label = 'STATION WAGON';
         o.v = rand(14, 19);
         o.d = Math.round(d / 4) * 4;
+        break;
+      }
+      case 'surf': {
+        o.mesh = new THREE.Group();
+        const rack = box(0.15, 1.4, 1.8, M(0x8a5a2a)); rack.position.y = 0.7; o.mesh.add(rack);
+        for (let i = 0; i < 4; i++) {
+          const b = box(0.12, 2.6, 0.55, M(pick([0xff3fa4, 0x3ef2ff, 0xffd23f, 0xffffff, 0xff8a3d])));
+          b.position.set(rand(-0.25, 0.25) + (i - 1.5) * 0.18, 1.3, (i - 1.5) * 0.4); b.rotation.x = rand(-0.12, 0.12);
+          o.mesh.add(b);
+        }
+        o.r = 0.9; o.value = 450; o.label = 'SURFBOARDS';
+        break;
+      }
+      case 'umbrella': {
+        o.mesh = new THREE.Group();
+        const pole = box(0.06, 2.2, 0.06, M(0xffffff)); pole.position.y = 1.1; o.mesh.add(pole);
+        const top = new THREE.Mesh(new THREE.ConeGeometry(1.4, 0.6, 8), M(pick([0xff3fa4, 0x3ef2ff, 0xffd23f]))); top.position.y = 2.3; o.mesh.add(top);
+        const cooler = box(0.7, 0.45, 0.45, M(0x2a6ad8)); cooler.position.set(0.5, 0.23, 0.3); o.mesh.add(cooler);
+        const chair = box(0.6, 0.08, 1.2, M(0xfff0a0)); chair.position.set(-0.5, 0.35, 0); chair.rotation.x = 0.3; o.mesh.add(chair);
+        o.r = 0.9; o.value = 90; o.label = 'BEACH UMBRELLA';
+        break;
+      }
+      case 'hotdog': {
+        o.mesh = new THREE.Group();
+        const cart = box(1.0, 1.0, 1.8, M(0xe8e8e0)); cart.position.y = 0.75; o.mesh.add(cart);
+        const dog = box(0.4, 0.4, 1.4, M(0xc0502a)); dog.position.y = 1.45; o.mesh.add(dog);
+        const umb = new THREE.Mesh(new THREE.ConeGeometry(1.2, 0.5, 8), M(0xffd23f)); umb.position.y = 2.4; o.mesh.add(umb);
+        const pole = box(0.05, 1.2, 0.05, M(0x888888)); pole.position.y = 1.85; o.mesh.add(pole);
+        o.r = 0.8; o.rl = 1.0; o.value = 900; o.label = 'HOT DOG STAND';
+        break;
+      }
+      case 'skates': {
+        o.mesh = new THREE.Group();
+        const sk = new Rig({ scale: 0.95, skin: 0xf0c0a0, hair: 0xf0d070, hairStyle: 'headband', jacket: 0xf0c0a0, shirt: 0xff3fa4, pants: 0x3ef2ff, shoes: 0xffffff, legWarmers: 0xffd23f, face: { mouth: 'grin', lashes: true, lipstick: true }, gun: null });
+        sk.root.rotation.y = Math.PI / 2;
+        o.mesh.add(sk.root);
+        o.rig = sk; o.r = 0.5; o.value = 0; o.label = ''; o.vd = rand(-3, 3) || 2;
         break;
       }
       case 'fruit': {
@@ -295,6 +457,20 @@ export class ChaseScene extends Scene {
     }
     const kids = () => [...o.mesh.children].filter((c) => c.isMesh || c.isGroup);
     switch (o.type) {
+      case 'skates':
+        // a roller skater: she dodges at the last second, every time
+        o.alive = true;
+        if (!o.dodged) { o.dodged = true; o.vd = (o.d > (byPlayer ? this.pc.d : this.duke.d) ? 1 : -1) * 9; g.audio.sfx('screech', 0.4); if (byPlayer) this.quip('skate', [['delgado', 'She skated better than you drive, Rex.']]); }
+        return;
+      case 'surf': case 'umbrella': case 'hotdog':
+        g.audio.sfx(o.type === 'hotdog' ? 'clang' : 'thump');
+        for (const k of kids()) fling(k, o.type === 'umbrella' ? 11 : 7, 3);
+        fx.dust(_v, 10, [0.95, 0.85, 0.6]);
+        if (o.type === 'hotdog') fx.confetti(_v.clone().setY(1.4), 18);
+        o.mesh.removeFromParent();
+        if (byPlayer && o.type === 'hotdog') this.quip('hotdog', [['hammer', 'I was going to get one of those.']]);
+        if (byPlayer && o.type === 'surf') this.quip('surf', [['delgado', 'Cowabunga. That was sarcasm.']]);
+        break;
       case 'boxes': case 'cart': case 'tires':
         g.audio.sfx(o.type === 'cart' ? 'clang' : 'thump');
         for (const k of kids()) fling(k, 7, 3);
@@ -327,8 +503,8 @@ export class ChaseScene extends Scene {
         fx.confetti(_v.clone().setY(1.2), 25);
         if (byPlayer) {
           const n = g.stats.items['FRUIT CART'] || 0;
-          if (n <= 1) this.quip('fruit1', [['hammer', 'Who keeps putting fruit carts in a RIVER?!']]);
-          else this.quip('fruit2', [['delgado', "That's two, Rex. The Captain's going to have a stroke."]]);
+          if (n <= 1) this.quip('fruit1', [['hammer', `Who keeps putting fruit carts ${this.T.where}?!`]]);
+          else this.quip('fruit2', [['delgado', this.T.fruit2]]);
         }
         break;
       }
@@ -336,7 +512,7 @@ export class ChaseScene extends Scene {
         g.audio.sfx('glass');
         for (let i = 0; i < 40; i++) fx.glow.spawn(_v.x + rand(-1.5, 1.5), 1.2 + rand(-0.8, 0.8), _v.z + rand(-1.5, 1.5), fwd.x * pushV * 0.6 + rand(-4, 4), rand(1, 6), fwd.z * pushV * 0.6 + rand(-4, 4), rand(0.4, 1), 0.12, 0.7, 0.9, 1, 1, 14);
         o.pane.removeFromParent();
-        if (byPlayer) this.quip('glass' + (g.stats.items['PLATE GLASS'] || 0), [['hammer', pick(['Every time.', 'Who carries glass across a RIVER?', 'Somebody call a glazier.'])]]);
+        if (byPlayer) this.quip('glass' + (g.stats.items['PLATE GLASS'] || 0), [['hammer', pick(['Every time.', `Who carries glass across ${this.T.across}?`, 'Somebody call a glazier.'])]]);
         break;
     }
     if (byPlayer) {
@@ -425,7 +601,8 @@ export class ChaseScene extends Scene {
     this.duke.v = Math.max(this.duke.v, 30);
     g.audio.playSong('chase');
     g.audio.engineStart();
-    ui.toast('CATCH THE DUKE!', 'big');
+    ui.toast(this.T.toast, 'big');
+    if (this.ep === 2) ui.toast('(THE NEW DOOR IS STILL PRIMER)', 'good');
     if (g.touch.used) ui.sub('narrator', 'The gas is automatic. Steer with your left thumb, tap FIRE to shoot Gerald, and ram him!', 5);
     else ui.sub('narrator', g.mode === 2 ? 'P1: W/S gas & brake, A/D steer, SPACE fires Gerald. P2: arrows aim, ENTER shoots.' : 'W/S gas & brake, A/D steer, SPACE or click fires Gerald. Shoot him and ram him!', 5);
   }
@@ -434,7 +611,18 @@ export class ChaseScene extends Scene {
     const g = this.game, ui = g.ui;
     ui.letterbox(true);
     await this.w(ui.fade(0, 0.8));
-    await this.w(ui.locationCard(['THE L.A. RIVER', '9:52 PM'], 1.2));
+    await this.w(ui.locationCard(this.T.card, 1.2));
+    if (this.ep === 2) {
+      await this.say('vigor', "You'll never catch me, pigs! I do TWO HOURS of cardio a day!");
+      this.dukeGo = true;
+      g.audio.sfx('screech');
+      this.camMode = 'introCar';
+      await this.say('delgado', "He's taking the boardwalk!");
+      await this.say('hammer', "You can't drive on the boardwalk.");
+      await this.say('delgado', "Rex. We are ON the boardwalk.");
+      await this.say('hammer', '...Hang on to something.');
+      return;
+    }
     ui.toast('(FILMED DAY-FOR-NIGHT)', 'good');
     await this.say('duke', 'So long, coppers! Nobody catches the Disco Duke!');
     this.dukeGo = true;
@@ -457,7 +645,7 @@ export class ChaseScene extends Scene {
       g.audio.sfx('screech');
       g.audio.sfx('crunch');
       g.slowmo(0.35, 1.3);
-      ui.worksForMe("THE DUKE'S RIDE IS TOTALED");
+      ui.worksForMe(this.T.wreck);
       g.audio.sfx('wfm');
     }
     this.camMode = 'end';
@@ -465,6 +653,19 @@ export class ChaseScene extends Scene {
     g.audio.engineStop();
     ui.letterbox(true);
     await this.cut(async () => {
+      if (this.ep === 2) {
+        if (wrecked) {
+          await this.say('vigor', 'My car! My beautiful, deductible car!');
+          await this.say('delgado', "He's out! He just jumped into a cab!");
+          await this.say('hammer', 'Follow that cab.');
+          await this.say('delgado', "He told the driver 'Beverly Hills.' The flagship gym. That's where the books are.");
+          await this.say('hammer', 'Works for me.');
+        } else {
+          await this.say('delgado', "He's off the boardwalk... heading up Wilshire. Beverly Hills.");
+          await this.say('hammer', 'The flagship gym. That\'s where he keeps the money.');
+        }
+        return;
+      }
       if (wrecked) {
         await this.say('delgado', "He's bailing out! He's running for that warehouse on Mission Road!");
         await this.say('hammer', "Disco's dead, Duke.");
@@ -477,7 +678,7 @@ export class ChaseScene extends Scene {
     });
     g.audio.stopMusic(0.6);
     await this.w(ui.fade(1, 0.7));
-    g.goto('warehouse');
+    g.next();
   }
 
   // ------------------------------------------------------------------ HUD
@@ -485,7 +686,7 @@ export class ChaseScene extends Scene {
     const g = this.game;
     g.ui.L.hud.innerHTML = `
       <div class="hud">
-        <div class="tl"><div class="lbl">THE DISCO DUKE</div><div class="bar pink"><i id="grit"></i></div><div class="small">GRIT</div></div>
+        <div class="tl"><div class="lbl">${this.T.villainHud}</div><div class="bar pink"><i id="grit"></i></div><div class="small">GRIT</div></div>
         <div class="tc"><div class="gap">GAP <b id="gap">0</b> M</div><div class="warn" id="warn">HE'S GETTING AWAY!</div></div>
         <div class="tr"><div class="lbl">COLLATERAL <b id="coll" style="color:var(--gold)">$0</b></div><div class="lbl">REPAIR BILL <b id="rep" style="color:var(--orange)">$0</b></div></div>
         <div class="bl"><div class="lbl">P1 · HAMMER · DRIVING</div><div class="ammo" id="ammo"></div><div class="small">${g.mode === 2 ? 'P2 · DELGADO · AIM &amp; SHOOT' : 'DELGADO IS COVERING YOU'}</div></div>
@@ -577,6 +778,14 @@ export class ChaseScene extends Scene {
         for (const w of o.car.wheels) w.spin.rotation.x += (o.v / 0.34) * dt;
       }
       if (o.type === 'glass') this.updateGlass(o, dt);
+      if (o.type === 'skates' && Math.abs(o.s - this.pc.s) < 160) {
+        // weaving across the walk, oblivious
+        o.d += o.vd * dt;
+        if (Math.abs(o.d) > 10.5) { o.d = Math.sign(o.d) * 10.5; o.vd = -Math.sign(o.d) * Math.max(2, Math.abs(o.vd) * 0.5); o.dodged = false; }
+        this.placeObs(o);
+        o.mesh.rotation.y += Math.PI / 2 * Math.sign(o.vd) - Math.PI / 2;
+        o.rig.update(dt, { pose: o.dodged ? 'raise' : 'aeroLeft', speed: 0.5 });
+      }
     }
     if (this.phase !== 'intro') this.collide();
 
@@ -725,7 +934,7 @@ export class ChaseScene extends Scene {
           this.fx.sparks(_v, 20);
           this.fx.dust(_v, 12);
           this.shake = 1.4;
-          this.quip('pillar' + Math.floor(this.t / 20), [['delgado', pick(['PILLAR!', '...Pillar.', 'That was a load-bearing pillar, Rex.'])]]);
+          this.quip('pillar' + Math.floor(this.t / 20), [['delgado', pick(this.T.pillar)]]);
         } else if (o.type === 'glass' && !o.pane.parent) {
           continue;
         } else {
@@ -757,7 +966,7 @@ export class ChaseScene extends Scene {
       this.fx.sparks(_v, 22);
       this.shake = Math.max(this.shake, 0.9);
       g.ui.toast('RAMMED!', 'good');
-      if (Math.random() < 0.4) g.ui.sub('duke', pick(['My PAINT JOB!', 'Watch the fenders, pig!', "Do you know what this car COST?!"]), 2.2);
+      if (Math.random() < 0.4) g.ui.sub(this.T.villain, pick(this.T.ram), 2.2);
     }
   }
 
@@ -798,7 +1007,7 @@ export class ChaseScene extends Scene {
       g.stats.hits++;
       this.fx.sparks(to, 8);
       g.audio.sfx('impact', 0.6);
-      if (Math.random() < 0.12) g.ui.sub('duke', pick(['Not the CHROME!', 'You shot my HOOD ORNAMENT!', 'That is a LEASE!']), 2);
+      if (Math.random() < 0.12) g.ui.sub(this.T.villain, pick(this.T.shot), 2);
     } else if (inRange && Math.random() < 0.3) g.audio.sfx('ricochet', 0.5);
     if (gr.ammo <= 0) { gr.reload = 1.5; g.audio.sfx('reload', 0.7); }
   }

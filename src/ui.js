@@ -8,6 +8,8 @@ export const SPEAKERS = {
   goon: { name: 'HENCHMAN', color: '#4b4b63', pitch: 140, wave: 'square' },
   worker: { name: 'GLASS GUY', color: '#2d6fa8', pitch: 150, wave: 'square' },
   narrator: { name: 'ANNOUNCER', color: '#222', pitch: 100, wave: 'triangle' },
+  vigor: { name: 'RICK VIGOR', color: '#ff3fa4', pitch: 130, wave: 'sawtooth' },
+  candi: { name: 'CANDI KANE', color: '#14b8b0', pitch: 260, wave: 'triangle' },
 };
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

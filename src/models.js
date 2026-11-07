@@ -70,6 +70,27 @@ export const SPECS = {
     jacket: 0xf8f6ee, shirt: 0x161616, pants: 0xf8f6ee, shoes: 0xffffff, chain: true, collar: true,
     face: { shades: true, mouth: 'grin', mustache: 'thin' }, gun: 'gold',
   },
+  // ---- Episode 2: "Death Wears Leg Warmers"
+  vigor: {
+    scale: 1.1, shoulders: 1.3, skin: 0xd08a5a, hair: 0xe8c860, hairStyle: 'feathered',
+    jacket: 0xd08a5a, shirt: 0x1a1a1a, pants: 0x1c2a8a, shoes: 0xffffff, legWarmers: 0xff3fa4, oneLegWarmer: true, sweatband: 0xffffff, chain: true,
+    face: { mouth: 'grin', brow: 'heavy', mustache: 'thin', eye: '#2a6ab0' }, gun: 'gold',
+  },
+  candi: {
+    scale: 0.95, skin: 0xf0c0a0, hair: 0xd8502a, hairStyle: 'feathered',
+    jacket: 0xf0c0a0, shirt: 0x14b8b0, pants: 0x14b8b0, shoes: 0xffffff, legWarmers: 0xffd23f, sweatband: 0xff3fa4,
+    face: { lipstick: true, mouth: 'smirk', lashes: true, eye: '#2a6ab0', blush: true, shadowLid: true, hairline: 11 }, gun: null,
+  },
+  delgadoGym: {
+    scale: 0.96, skin: 0xf2c4a0, hair: 0xf0cf72, hairStyle: 'feathered',
+    jacket: 0xf2c4a0, shirt: 0xd86fae, pants: 0x2a1a4a, shoes: 0xffffff, legWarmers: 0xd86fae, sweatband: 0xffffff,
+    face: { lipstick: true, mouth: 'flat', lashes: true, eye: '#2f7a4a', blush: true, shadowLid: true, hairline: 11 }, gun: null,
+  },
+  hammerGym: {
+    scale: 1.07, shoulders: 1.15, skin: 0xd9a07a, hair: 0x4a2c1a, hairStyle: 'mullet',
+    jacket: 0x9a9aa2, shirt: 0x9a9aa2, pants: 0x9a9aa2, shoes: 0xffffff, sweatband: 0xff3fa4, stripes: true,
+    face: { brow: 'heavy', mouth: 'flat', stubble: true, eye: '#3a5a80' }, gun: null,
+  },
   worker: {
     scale: 1.0, skin: 0xc58b62, hair: 0x2a2a2a, hairStyle: 'cap', capColor: 0x2266aa,
     jacket: 0x6b8fb5, shirt: 0x6b8fb5, pants: 0x30353d, face: { mouth: 'frown' }, gun: null,
@@ -83,6 +104,22 @@ const GOON_LOOKS = [
   { jacket: 0x8a2424, shirt: 0x111111, pants: 0x3a3a3a, hairStyle: 'cap', capColor: 0x111111, face: { shades: true, mouth: 'smirk', stubble: true } },
   { jacket: 0x3b4a2a, shirt: 0xd9d0b0, pants: 0x55462f, hairStyle: 'buzz', face: { mouth: 'flat', scar: true, brow: 'heavy' } },
 ];
+const GYM_LOOKS = [
+  { jacket: 0x1a1a8a, shirt: 0xffffff, pants: 0x1a1a8a, hairStyle: 'buzz', stripes: true, face: { mouth: 'frown', brow: 'angry' } },
+  { jacket: 0x8a1a5a, shirt: 0x111111, pants: 0x8a1a5a, hairStyle: 'slick', stripes: true, face: { shades: true, mouth: 'flat' } },
+  { jacket: 0xd08a5a, shirt: 0xffd23f, pants: 0x222222, hairStyle: 'headband', face: { mouth: 'grin', stubble: true }, girth: 1.18, shoulders: 1.3 },
+  { jacket: 0x0f6a5a, shirt: 0xffffff, pants: 0x0f6a5a, hairStyle: 'cap', capColor: 0xff3fa4, stripes: true, face: { shades: true, mouth: 'smirk' } },
+  { jacket: 0xd08a5a, shirt: 0x14b8b0, pants: 0x14b8b0, hairStyle: 'buzz', sweatband: 0xffd23f, legWarmers: 0xff3fa4, face: { mouth: 'flat', brow: 'heavy' }, shoulders: 1.25 },
+];
+/** Henchmen in tracksuits and tank tops for Rick Vigor's gym. */
+export function gymGoonSpec() {
+  const look = pick(GYM_LOOKS);
+  const skin = pick([0xe0b090, 0xc58b62, 0x9a6a48, 0x7a4e34, 0xf0c8a8]);
+  const hair = pick([0x111111, 0x2a1a10, 0x4a3020, 0xd8b860]);
+  const sk = look.jacket === 0xd08a5a ? { jacket: skin } : {};
+  return { scale: rand(0.98, 1.08), girth: rand(0.95, 1.1), skin, hair, shoes: 0xffffff, gun: 'pistol', ...look, ...sk, face: { ...look.face } };
+}
+
 export function goonSpec() {
   const look = pick(GOON_LOOKS);
   const skin = pick([0xe0b090, 0xc58b62, 0x9a6a48, 0x7a4e34, 0xf0c8a8]);
@@ -113,6 +150,13 @@ const POSES = {
   flail: { flail: true, armL: [-1.5, 0, 0.6], armR: [-1.5, 0, -0.6], elL: -0.5, elR: -0.5 },
   wave: { armL: [0, 0, 0.12], armR: [-0.2, 0, -2.5], elL: -0.2, elR: -0.8 },
   phone: { armL: [0, 0, 0.12], armR: [-0.6, 0.6, -0.35], elL: -0.2, elR: -2.4 },
+  // aerobics moves (Episode 2)
+  aeroUp: { armL: [-2.95, 0, 0.25], armR: [-2.95, 0, -0.25], elL: 0, elR: 0, torso: [-0.08, 0, 0] },
+  aeroLeft: { armL: [0, 0, 2.4], armR: [0, 0, -0.9], elL: 0, elR: -0.2, torso: [0, 0, 0.28], legL: -0.25 },
+  aeroRight: { armL: [0, 0, 0.9], armR: [0, 0, -2.4], elL: -0.2, elR: 0, torso: [0, 0, -0.28], legR: -0.25 },
+  aeroDown: { armL: [-0.9, 0, 0.1], armR: [-0.9, 0, -0.1], elL: 0, elR: 0, torso: [0.85, 0, 0] },
+  aeroClap: { armL: [-1.5, -0.5, 0], armR: [-1.5, 0.5, 0], elL: -0.6, elR: -0.6 },
+  aeroFlex: { armL: [0, 0, 1.55], armR: [0, 0, -1.55], elL: -2.0, elR: -2.0 },
 };
 
 function limb(mat, rTop, rBot, len, seg = 6) {
@@ -150,6 +194,17 @@ export class Rig {
       const shoe = box(0.14 * S, 0.09 * S, 0.27 * S, m.shoes);
       shoe.position.set(0, -(legLen - 0.06 * S), 0.05 * S);
       leg.add(shoe);
+      if (spec.legWarmers && !(spec.oneLegWarmer && leg === this.legR)) {
+        // the clue: big fuzzy leg warmers bunched over the shins
+        const lw = cyl(0.1 * S * W, 0.11 * S, 0.36 * S, 7, L(spec.legWarmers));
+        lw.position.y = -(legLen - 0.27 * S);
+        leg.add(lw);
+        for (const yy of [0.12, 0.24]) {
+          const ring = cyl(0.112 * S * W, 0.112 * S * W, 0.025 * S, 7, L(spec.legWarmersStripe ?? 0xffffff));
+          ring.position.y = -(legLen - yy * S - 0.1 * S);
+          leg.add(ring);
+        }
+      }
       this.hips.add(leg);
     }
     const pantsTop = box(0.42 * S * W, 0.16 * S, 0.25 * S * W, m.pants);
@@ -223,6 +278,11 @@ export class Rig {
     this.head.add(headMesh);
     this.mats.face = faceMat;
     this.buildHair(spec, hw, hh, hd, S);
+    if (spec.sweatband) {
+      const band = box(hw + 0.035, 0.05 * S, hd + 0.035, L(spec.sweatband));
+      band.position.y = hh * 0.82;
+      this.head.add(band);
+    }
 
     // arms
     const armLen = 0.31 * S, foreLen = 0.28 * S;

@@ -12,6 +12,9 @@ import { OfficeScene } from './scenes/office.js';
 import { ChaseScene } from './scenes/chase.js';
 import { WarehouseScene } from './scenes/warehouse.js';
 import { EndingScene } from './scenes/ending.js';
+import { AerobicsScene } from './scenes/aerobics.js';
+import { GymScene } from './scenes/gym.js';
+import { nextScene, EPISODES } from './episodes.js';
 
 const ROUTES = {
   title: { cls: TitleScene },
@@ -21,6 +24,14 @@ const ROUTES = {
   warehouse: { cls: WarehouseScene, gameplay: true },
   verdict: { cls: OfficeScene, params: { mode: 'verdict' } },
   ending: { cls: EndingScene },
+  // Episode 2: "Death Wears Leg Warmers"
+  credits2: { cls: CreditsScene, params: { ep: 2 } },
+  briefing2: { cls: OfficeScene, params: { mode: 'briefing', ep: 2 } },
+  aerobics: { cls: AerobicsScene, gameplay: true },
+  chase2: { cls: ChaseScene, params: { ep: 2 }, gameplay: true },
+  gym: { cls: GymScene, gameplay: true },
+  verdict2: { cls: OfficeScene, params: { mode: 'verdict', ep: 2 } },
+  ending2: { cls: EndingScene, params: { ep: 2 } },
 };
 
 class Events {
@@ -130,8 +141,20 @@ class Game {
     this.scene = new def.cls(this, { ...(def.params || {}), ...params });
     this.scene.enter();
     if (SAVE_SCENES[name]) writeSave(name, this.mode, def.gameplay ? this.snapshot : this.stats);
-    if (name === 'ending') clearSave();
+    if (name.startsWith('ending')) {
+      // finished an episode: the save now points at the next one (or is cleared after the last)
+      const ep = EPISODES.findIndex((e) => e.scenes.includes(name));
+      const following = EPISODES[ep + 1];
+      if (following) writeSave(following.scenes[0], this.mode, newStats(following.n));
+      else clearSave();
+    }
     window.dispatchEvent(new CustomEvent('hd-scene', { detail: name }));
+  }
+
+  /** Go to the next scene of the current episode (or the title after the last). */
+  next() {
+    const n = nextScene(this.current.name);
+    this.goto(n || 'title');
   }
 
   retry() {
@@ -234,4 +257,10 @@ if ('serviceWorker' in navigator && document.querySelector('link[rel="manifest"]
 
 const game = new Game();
 window.game = game;
-game.goto(game.params.get('scene') || 'title');
+{
+  // debug jump: start with the right episode's case file
+  const first = game.params.get('scene') || 'title';
+  const ep = EPISODES.find((e) => e.scenes.includes(first));
+  if (ep) game.stats = newStats(ep.n);
+  game.goto(first);
+}
