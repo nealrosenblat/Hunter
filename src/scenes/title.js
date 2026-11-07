@@ -3,6 +3,7 @@ import { Scene } from '../scene.js';
 import { buildStreet } from '../env.js';
 import { makeBrougham, Rig, SPECS } from '../models.js';
 import { newStats } from '../stats.js';
+import { readSave, SAVE_SCENES } from '../save.js';
 
 export class TitleScene extends Scene {
   enter() {
@@ -44,16 +45,24 @@ export class TitleScene extends Scene {
   async mainMenu() {
     const g = this.game;
     for (;;) {
+      const save = readSave();
       const c = await this.w(g.ui.menu(
         [
-          { label: '1 PLAYER', value: 1 },
-          { label: '2 PLAYERS · CO-OP', value: 2 },
+          ...(save ? [{ label: `CONTINUE · ${SAVE_SCENES[save.scene]}`, value: 'continue' }] : []),
+          { label: save ? 'NEW GAME · 1 PLAYER' : '1 PLAYER', value: 1 },
+          { label: save ? 'NEW GAME · 2 PLAYERS' : '2 PLAYERS · CO-OP', value: 2 },
           { label: 'SCENE SELECT', value: 'select' },
           { label: 'CONTROLS', value: 'controls' },
         ],
         { cls: 'low', foot: 'ARROWS / STICK + ENTER / A · MOUSE WORKS TOO' },
       ));
       if (c === 'controls') { await this.w(g.showControls()); continue; }
+      if (c === 'continue') {
+        g.mode = save.mode === 2 ? 2 : 1;
+        g.stats = { ...newStats(), ...save.stats };
+        await this.w(g.ui.fade(1, 0.6));
+        return g.goto(save.scene);
+      }
       if (c === 'select') {
         const sc = await this.w(g.ui.menu(
           [

@@ -4,6 +4,7 @@ import { Audio } from './audio.js';
 import { UI } from './ui.js';
 import { TouchControls } from './touch.js';
 import { newStats } from './stats.js';
+import { writeSave, clearSave, SAVE_SCENES } from './save.js';
 import { TitleScene } from './scenes/title.js';
 import { CreditsScene } from './scenes/credits.js';
 import { OfficeScene } from './scenes/office.js';
@@ -122,6 +123,8 @@ class Game {
     this.current = { name, params };
     this.scene = new def.cls(this, { ...(def.params || {}), ...params });
     this.scene.enter();
+    if (SAVE_SCENES[name]) writeSave(name, this.mode, def.gameplay ? this.snapshot : this.stats);
+    if (name === 'ending') clearSave();
     window.dispatchEvent(new CustomEvent('hd-scene', { detail: name }));
   }
 
@@ -208,6 +211,11 @@ class Game {
     this.ui.update(rdt);
     this.input.endFrame();
   }
+}
+
+// offline / home-screen support (only where the manifest is present, i.e. not in the single-file build)
+if ('serviceWorker' in navigator && document.querySelector('link[rel="manifest"]') && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
 const game = new Game();

@@ -76,7 +76,7 @@ html, body {
 @keyframes subin { from { opacity: 0; transform: translateY(8px); } }
 
 /* ---------- toasts ---------- */
-#layer-toast { display: flex; flex-direction: column; align-items: flex-end; padding: 14vh 2vw 0 0; gap: .35em; }
+#layer-toast { display: flex; flex-direction: column; align-items: flex-end; padding: 14vh max(2vw, env(safe-area-inset-right, 0px)) 0 0; gap: .35em; }
 .toast {
   font-family: var(--font-display); font-size: .95em; letter-spacing: .03em;
   background: linear-gradient(90deg, rgba(255,63,164,.0), rgba(255,63,164,.85));
@@ -111,7 +111,7 @@ html, body {
 
 /* ---------- cards (location supers / episode titles) ---------- */
 .card-loc {
-  position: absolute; left: 6vw; bottom: 16vh;
+  position: absolute; left: max(6vw, env(safe-area-inset-left, 0px)); bottom: 16vh;
   font-family: var(--font-type); font-weight: 700; font-size: 1.6em; line-height: 1.25;
   color: #fff; text-shadow: 2px 2px 0 #000, 0 0 6px #000;
   white-space: pre;
@@ -185,10 +185,10 @@ html, body {
   text-shadow: 4px 4px 0 var(--pink), 8px 8px 0 #11052b;
 }
 .credit .as { font-family: var(--font-type); font-size: 1.1em; margin-top: .3em; text-shadow: 2px 2px 0 #000; color: var(--gold); }
-.credit.left { text-align: left; left: 6vw; }
-.credit.right { text-align: right; right: 6vw; left: auto; }
+.credit.left { text-align: left; left: max(6vw, env(safe-area-inset-left, 0px)); }
+.credit.right { text-align: right; right: max(6vw, env(safe-area-inset-right, 0px)); left: auto; }
 @keyframes creditin { from { opacity: 0; transform: translateX(-40px); } }
-.skip { position: absolute; right: 2vw; top: 2vh; font-size: .75em; opacity: .55; letter-spacing: .08em; }
+.skip { position: absolute; right: max(2vw, env(safe-area-inset-right, 0px)); top: 2vh; font-size: .75em; opacity: .55; letter-spacing: .08em; }
 
 /* ---------- HUD ---------- */
 .hud { position: absolute; inset: 0; font-family: var(--font-display); text-shadow: 2px 2px 0 #000; }
@@ -197,11 +197,11 @@ html, body {
 .bar.pink i { background: linear-gradient(180deg, #ff9ad5, #d4126e); }
 .bar.gold i { background: linear-gradient(180deg, #ffe58a, #d08a00); }
 .bar.low i { background: linear-gradient(180deg, #ff8a7a, #c01515); }
-.hud .tl { position: absolute; left: 2vw; top: 2.5vh; }
-.hud .tr { position: absolute; right: 2vw; top: 2.5vh; text-align: right; line-height: 1.5; }
+.hud .tl { position: absolute; left: max(2vw, env(safe-area-inset-left, 0px)); top: 2.5vh; }
+.hud .tr { position: absolute; right: max(2vw, env(safe-area-inset-right, 0px)); top: 2.5vh; text-align: right; line-height: 1.5; }
 .hud .tc { position: absolute; left: 0; right: 0; top: 2.5vh; text-align: center; }
-.hud .bl { position: absolute; left: 2vw; bottom: 3vh; line-height: 1.4; }
-.hud .br { position: absolute; right: 2vw; bottom: 2.5vh; text-align: right; }
+.hud .bl { position: absolute; left: max(2vw, env(safe-area-inset-left, 0px)); bottom: 3vh; line-height: 1.4; }
+.hud .br { position: absolute; right: max(2vw, env(safe-area-inset-right, 0px)); bottom: 2.5vh; text-align: right; }
 .hud .lbl { font-size: .8em; letter-spacing: .06em; margin-bottom: .2em; }
 .hud .small { font-family: var(--font-body); font-weight: 700; font-size: .8em; opacity: .85; }
 .speedo b { font-size: 3.4em; line-height: 1; color: var(--gold); -webkit-text-stroke: 2px #000; }
@@ -228,13 +228,13 @@ html, body {
 .hitflash { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(255,0,0,0) 40%, rgba(255,0,0,.75) 100%); opacity: 0; }
 .prompt { position: absolute; left: 0; right: 0; bottom: 20vh; text-align: center; font-size: 1.1em; color: var(--gold); display: none; }
 .prompt.on { display: block; animation: bob .5s infinite alternate; }
-.pstat { position: absolute; left: 1.2em; bottom: 1.2em; }
+.pstat { position: absolute; left: max(1.2em, env(safe-area-inset-left, 0px)); bottom: max(1.2em, env(safe-area-inset-bottom, 0px)); }
 .pstat .pname { font-size: 1.1em; }
 .pstat .ammo { font-family: var(--font-body); font-weight: 900; letter-spacing: .05em; margin-top: .25em; color: var(--gold); }
 .pstat .status { font-size: .85em; color: var(--cyan); min-height: 1.2em; }
-.partner { position: absolute; left: 1.2em; bottom: 7.4em; font-size: .75em; opacity: .9; }
+.partner { position: absolute; left: max(1.2em, env(safe-area-inset-left, 0px)); bottom: 7.4em; font-size: .75em; opacity: .9; }
 .partner .bar { width: 8em; height: .6em; }
-.objective { position: absolute; left: 2vw; top: 2.5vh; font-size: .95em; max-width: 46vw; }
+.objective { position: absolute; left: max(2vw, env(safe-area-inset-left, 0px)); top: 2.5vh; font-size: .95em; max-width: 46vw; }
 .objective small { display: block; font-family: var(--font-body); font-weight: 700; font-size: .75em; opacity: .8; }
 .bossbar { position: absolute; left: 50%; top: 2.5vh; transform: translateX(-50%); text-align: center; display: none; }
 .bossbar.on { display: block; }

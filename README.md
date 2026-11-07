@@ -45,6 +45,12 @@ npm start            # serves the folder at http://localhost:8080 (needs python3
 
 You can use any static file server. Opening `index.html` straight from disk won't work, because browsers block ES modules on `file://` URLs.
 
+### Install it on an iPhone (home-screen app)
+
+Once the game is hosted at an `https://` address, open it in **Safari**, tap **Share → Add to Home Screen**. It launches full-screen with its own icon, works offline after the first visit, and the title screen offers **Continue** from the last scene you reached. Hold the phone sideways. On-screen touch controls appear automatically.
+
+Hosting options: GitHub Pages (free for public repos; private repos need a paid GitHub plan), or drag the folder onto Netlify Drop or Cloudflare Pages. Everything is relative-pathed, so it works from any sub-folder.
+
 ### Single-file build
 
 ```bash
