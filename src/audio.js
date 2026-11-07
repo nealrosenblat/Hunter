@@ -110,6 +110,43 @@ const SONGS = {
     stabRhythm: '. . x . . . x . . . x . . . x .',
     stabVol: 0.7,
   },
+  // Episode 2: the 9 PM Power Hour at the Vigor Body Temple (workout-video synth pop, 120 BPM)
+  aerobics: {
+    bpm: 120, bars: 8,
+    kick: ['x...x...x...x...'], snare: ['....x.......x...', '....x.......x.x.'], hat: ['x.o.x.o.x.o.x.o.'], hatVol: 0.65,
+    bass: ['C', 'G', 'A', 'F', 'C', 'G', 'A', 'F'].map((r) => pump(r, 2, 'R . O . R . O . R . O . R . O R')),
+    lead: [
+      'E5 - G5 - C6 - - - B5 - G5 - E5 - D5 -',
+      'D5 - - - G5 - - - B5 - A5 - G5 - - -',
+      'C5 - E5 - A5 - - - G5 - E5 - C5 - E5 -',
+      'F5 - - - A5 - - - C6 - - - A5 - G5 -',
+      'E5 - G5 - C6 - - - D6 - C6 - B5 - G5 -',
+      'B5 - - - D6 - - - B5 - A5 - G5 - - -',
+      'A5 - - - C6 - - - E6 - D6 - C6 - A5 -',
+      'F5 - - - G5 - A5 - G5 - - - . . . .',
+    ],
+    leadVol: 0.8,
+    pad: [chord('C4 E4 G4'), chord('B3 D4 G4'), chord('A3 C4 E4'), chord('A3 C4 F4')],
+    padRhythm: 'x - - - - - - - - - - - - - - -',
+    stab: [chord('E5 G5 C6'), chord('D5 G5 B5'), chord('C5 E5 A5'), chord('C5 F5 A5')],
+    stabRhythm: '. . x . . . x . . . x . . . x .',
+    stabVol: 0.5,
+  },
+  // Episode 2 boss fight: Rick Vigor's personal workout mix
+  pump: {
+    bpm: 132, bars: 4,
+    kick: ['x...x...x...x...'], snare: ['....x.......x...'], hat: ['x.x.x.x.x.x.x.xo'], hatVol: 0.55,
+    bass: ['E', 'C', 'D', 'B'].map((r) => pump(r, 1, 'R . R O R . R O R . R O R . R O')),
+    lead: [
+      'B4 - - - E5 - - - G5 - F#5 - E5 - D5 -',
+      'E5 - - - - - . . C5 - D5 - E5 - G5 -',
+      'F#5 - - - D5 - - - A5 - G5 - F#5 - E5 -',
+      'D#5 - - - - - . . F#5 - - - B5 - - -',
+    ],
+    stab: [chord('E4 G4 B4'), chord('C4 E4 G4'), chord('D4 F#4 A4'), chord('B3 D#4 F#4')],
+    stabRhythm: '. . x . . . x . . . x . . . x .',
+    stabVol: 0.75,
+  },
 };
 for (const s of Object.values(SONGS)) {
   for (const k of ['bass', 'lead']) if (s[k]) s[k + 'Ev'] = s[k].map(parseLine);
@@ -522,6 +559,7 @@ const SFX = {
   menu(t, v, o) { tone(this, t, v, o, { type: 'square', f0: 880, dur: 0.05, peak: 0.05 }); },
   confirm(t, v, o) { [0, 7].forEach((s, i) => tone(this, t + i * 0.07, v, o, { type: 'square', f0: mtof(76 + s), dur: 0.09, peak: 0.07 })); },
   thump(t, v, o) { tone(this, t, v, o, { f0: 90, f1: 40, dur: 0.18, peak: 0.8 }); burst(this, t, v, o, { f0: 1200, f1: 200, dur: 0.12, peak: 0.4, verb: 0.2 }); },
+  dumbbell(t, v, o) { tone(this, t, v, o, { f0: 75, f1: 28, dur: 0.38, peak: 0.95 }); burst(this, t, v, o, { f0: 900, f1: 120, dur: 0.22, peak: 0.5, verb: 0.25 }); tone(this, t + 0.02, v, o, { type: 'square', f0: 620, f1: 540, dur: 0.12, peak: 0.05 }); },
   splash(t, v, o) { burst(this, t, v, o, { f0: 3000, f1: 400, dur: 0.6, peak: 0.4, verb: 0.2 }); },
   cuff(t, v, o) { burst(this, t, v, o, { type: 'bandpass', f0: 4000, f1: 3000, dur: 0.05, q: 4, peak: 0.4, verb: 0.2 }); burst(this, t + 0.12, v, o, { type: 'bandpass', f0: 4200, f1: 3200, dur: 0.05, q: 4, peak: 0.4, verb: 0.2 }); },
   wfm(t, v, o) {
@@ -542,6 +580,15 @@ const SFX = {
     this.brass(t + 0.05, [57, 61, 64, 69, 73], 1.6, 1.4, o);
     this.snare(t + 0.05, 1.2, o);
   },
+  // Episode 2 aerobics
+  scratch(t, v, o) {
+    // the needle drags across the record
+    burst(this, t, v, o, { type: 'bandpass', f0: 2400, f1: 300, dur: 0.38, q: 3, peak: 0.7, verb: 0.1 });
+    tone(this, t, v, o, { type: 'sawtooth', f0: 520, f1: 70, dur: 0.38, peak: 0.12 });
+  },
+  step(t, v, o) { tone(this, t, v, o, { type: 'triangle', f0: 1320, dur: 0.05, peak: 0.08 }); },
+  flub(t, v, o) { tone(this, t, v, o, { type: 'square', f0: 140, f1: 90, dur: 0.14, peak: 0.08 }); },
+  gasp(t, v, o) { burst(this, t, v, o, { type: 'bandpass', f0: 900, f1: 1700, dur: 0.5, q: 0.8, peak: 0.25, verb: 0.4 }); },
   sadTrombone(t, v, o) {
     const notes = [[58, 0.35], [57, 0.35], [56, 0.35], [55, 1.3]];
     let tt = t;

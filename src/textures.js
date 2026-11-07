@@ -290,6 +290,28 @@ const GEN = {
     x.fillText('DUKE', 16, 38); x.fillText('JEANS', 16, 45);
     return finish(c, { clamp: true });
   },
+  // Episode 2: aerobics studio
+  mirror() {
+    const [c, x] = cv(64, 64);
+    const gr = x.createLinearGradient(0, 0, 64, 64);
+    gr.addColorStop(0, '#9fb4c8'); gr.addColorStop(0.5, '#c9d8e6'); gr.addColorStop(1, '#8aa0b6');
+    x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+    x.fillStyle = 'rgba(255,255,255,.35)';
+    for (const o of [10, 22, 44]) { x.beginPath(); x.moveTo(o, 64); x.lineTo(o + 10, 64); x.lineTo(o + 34, 0); x.lineTo(o + 24, 0); x.fill(); }
+    x.fillStyle = '#5a6a7a'; x.fillRect(0, 0, 1, 64);
+    return finish(c);
+  },
+  studioFloor() {
+    const [c, x] = cv(64, 64);
+    x.fillStyle = '#b8824a'; x.fillRect(0, 0, 64, 64);
+    for (let r = 0; r < 8; r++) {
+      x.fillStyle = `rgba(90,50,20,${rand(0.05, 0.2)})`; x.fillRect(0, r * 8, 64, 8);
+      x.fillStyle = 'rgba(60,30,10,.5)'; x.fillRect(0, r * 8, 64, 1);
+      x.fillRect(((r * 23) % 64), r * 8, 1, 8);
+    }
+    for (let i = 0; i < 30; i++) { x.fillStyle = 'rgba(255,240,210,.12)'; x.fillRect(rand(0, 64) | 0, rand(0, 64) | 0, rand(4, 12) | 0, 1); }
+    return finish(c);
+  },
   frame() {
     const [c, x] = cv(32, 24);
     x.fillStyle = '#c9a24a'; x.fillRect(0, 0, 32, 24);
@@ -303,6 +325,63 @@ const GEN = {
     speckle(x, 64, 32, 0.6);
     for (let i = 0; i < 6; i++) { x.fillStyle = pick(['#eee', '#ffe9a8', '#f5d0d0']); x.fillRect(rand(2, 50), rand(2, 20), 11, 9); }
     x.strokeStyle = '#c11'; x.beginPath(); x.moveTo(10, 8); x.lineTo(40, 20); x.lineTo(55, 6); x.stroke();
+    return finish(c, { clamp: true });
+  },
+  // ---- Episode 2: the Vigor Body Temple
+  rubberFloor() {
+    const [c, x] = cv(64, 64);
+    x.fillStyle = '#26262c'; x.fillRect(0, 0, 64, 64);
+    for (let i = 0; i < 380; i++) { x.fillStyle = pick(['rgba(255,63,164,.28)', 'rgba(62,242,255,.24)', 'rgba(255,255,255,.12)', 'rgba(0,0,0,.35)']); x.fillRect(Math.random() * 64 | 0, Math.random() * 64 | 0, 1, 1); }
+    x.fillStyle = 'rgba(0,0,0,.6)'; x.fillRect(0, 0, 64, 1); x.fillRect(0, 0, 1, 64);
+    return finish(c);
+  },
+  lobbyTile() {
+    const [c, x] = cv(64, 64);
+    for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) { x.fillStyle = (i + j) % 2 ? '#f2eee6' : '#e85aa8'; x.fillRect(i * 32, j * 32, 32, 32); }
+    speckle(x, 64, 64, 0.25, 0.1, 0.1);
+    x.fillStyle = 'rgba(0,0,0,.18)'; x.fillRect(0, 0, 64, 1); x.fillRect(0, 0, 1, 64); x.fillRect(0, 32, 64, 1); x.fillRect(32, 0, 1, 64);
+    return finish(c);
+  },
+  gymWall() {
+    const [c, x] = cv(64, 64);
+    x.fillStyle = '#efe9e2'; x.fillRect(0, 0, 64, 64);
+    speckle(x, 64, 64, 0.2, 0.06, 0.06);
+    x.fillStyle = '#14b8b0'; x.fillRect(0, 34, 64, 6);
+    x.fillStyle = '#ff3fa4'; x.fillRect(0, 42, 64, 4);
+    x.fillStyle = '#6b2fa3'; x.fillRect(0, 48, 64, 2);
+    x.fillStyle = '#d6cfc6'; x.fillRect(0, 56, 64, 8);
+    return finish(c);
+  },
+  mirror() {
+    const [c, x] = cv(64, 64);
+    const g = x.createLinearGradient(0, 0, 64, 64);
+    g.addColorStop(0, '#b8d8ec'); g.addColorStop(0.5, '#6a8aa8'); g.addColorStop(1, '#9ec2da');
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+    x.strokeStyle = 'rgba(255,255,255,.55)'; x.lineWidth = 3;
+    for (const o of [10, 30, 44]) { x.beginPath(); x.moveTo(o, 64); x.lineTo(o + 20, 0); x.stroke(); }
+    x.fillStyle = '#c0c4c8'; x.fillRect(0, 0, 64, 2); x.fillRect(0, 62, 64, 2);
+    return finish(c);
+  },
+  gymPoster() {
+    const [c, x] = cv(48, 64);
+    x.fillStyle = '#1a1030'; x.fillRect(0, 0, 48, 64);
+    x.fillStyle = '#ff3fa4'; x.fillRect(0, 0, 48, 14);
+    x.fillStyle = '#fff'; x.font = 'bold 9px sans-serif'; x.textAlign = 'center';
+    x.fillText('VIGOR', 24, 11);
+    x.fillStyle = '#d08a5a'; x.fillRect(16, 18, 16, 20); x.fillRect(10, 22, 6, 12); x.fillRect(32, 22, 6, 12);
+    x.fillStyle = '#e8c860'; x.fillRect(16, 16, 16, 5);
+    x.fillStyle = '#3ef2ff'; x.font = 'bold 6px sans-serif';
+    x.fillText('LIFETIME', 24, 46); x.fillText('MEMBERSHIP', 24, 53);
+    x.fillStyle = '#ffd23f'; x.font = 'bold 8px sans-serif'; x.fillText('$9,999', 24, 62);
+    return finish(c, { clamp: true });
+  },
+  cash() {
+    const [c, x] = cv(32, 16);
+    x.fillStyle = '#6aa86a'; x.fillRect(0, 0, 32, 16);
+    x.fillStyle = '#2f5a2f'; x.fillRect(2, 2, 28, 12);
+    x.fillStyle = '#9ad49a'; x.fillRect(4, 4, 24, 8);
+    x.fillStyle = '#2f5a2f'; x.font = 'bold 8px sans-serif'; x.textAlign = 'center'; x.fillText('100', 16, 11);
+    x.fillStyle = '#e8e2c8'; x.fillRect(14, 0, 4, 16);
     return finish(c, { clamp: true });
   },
 };

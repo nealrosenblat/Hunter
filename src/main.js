@@ -51,7 +51,8 @@ export const CONTROLS_HTML = `
     <kbd>F</kbd> kick door / interact<br>
     <kbd>Tab</kbd> swap partner · <kbd>Esc</kbd> pause<br>
     Driving: <kbd>Space</kbd>/<kbd>Click</kbd> fires Gerald out the window · <kbd>F</kbd> horn<br>
-    <kbd>Backspace</kbd> skips a cutscene</div>
+    <kbd>Backspace</kbd> skips a cutscene<br>
+    Aerobics: <kbd>← ↓ ↑ →</kbd> or <kbd>A S W D</kbd> on the beat</div>
   <div><h3>2 PLAYERS · ONE KEYBOARD</h3>
     <b>P1 Hammer</b>: same as left (WASD + mouse)<br>
     <b>P2 Delgado</b>: <kbd>↑ ↓</kbd> move, <kbd>← →</kbd> turn,<br>
@@ -62,14 +63,14 @@ export const CONTROLS_HTML = `
     Tap to start, choose and advance dialogue.<br>
     Left thumb: move · drag the right side to turn<br>
     Buttons: <b>FIRE</b>, <b>DIVE</b>, <b>KICK</b>, <b>RELOAD</b>, <b>SWAP</b><br>
-    Driving: auto-gas, steer with the left thumb, pull back to brake, hold <b>FIRE</b> to shoot<br>
+    Driving: auto-gas, steer with the left thumb, pull back to brake, hold <b>FIRE</b> to shoot<br>    Aerobics: tap the four arrow buttons on the beat<br>
     <b>SKIP ▸▸</b> and <b>☰ MENU</b> appear during dialogue · ❚❚ pauses. Hold your phone sideways.</div>
   <div><h3>GAMEPAD</h3>
     <kbd>L-stick</kbd> move · <kbd>R-stick</kbd> turn<br>
     <kbd>RT</kbd>/<kbd>A</kbd> fire / gas · <kbd>LT</kbd> brake<br>
     <kbd>B</kbd> dive · <kbd>X</kbd> interact · <kbd>LB</kbd> reload<br>
     <kbd>Y</kbd> swap · <kbd>Start</kbd> pause · <kbd>Back</kbd> skip cutscene<br>
-    Driving: <kbd>RT</kbd> gas · <kbd>RB</kbd> fire Gerald<br>
+    Driving: <kbd>RT</kbd> gas · <kbd>RB</kbd> fire Gerald<br>    Aerobics: d-pad or <kbd>X A Y B</kbd> = ← ↓ ↑ →<br>
     Two pads? Each player gets one.</div>
 </div>
 <p style="font-size:.85em;opacity:.8">Aim assist is generous, just like 1997. Click the screen in the warehouse to use mouse-look. <kbd>M</kbd> mutes.</p>`;

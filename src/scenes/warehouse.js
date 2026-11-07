@@ -19,9 +19,34 @@ const REVIVE_LINES = ['Get up. We have a Duke to dethrone.', 'Rub some dirt on i
 
 const _v = new THREE.Vector3(), _v2 = new THREE.Vector3();
 
+/** Episode 1 text and tuning. Subclasses (e.g. the Ep 2 gym) override config(). */
+export const WAREHOUSE_CFG = {
+  goonAlert: GOON_ALERT, goonDie: GOON_DIE, hitLines: HIT_LINES, downLines: DOWN_LINES, reviveLines: REVIVE_LINES,
+  bossName: 'THE DISCO DUKE', bossSpeaker: 'duke',
+  bossHelp1: 'BOYS! A little help here!', bossHelp2: 'Somebody DO something!',
+  bossTaunts: ['Feel the BEAT!', 'Do the Hustle, pig!', 'Boogie OOGIE oogie!', "This one's a classic!"],
+  barrel: { label: 'OIL DRUM', cost: 300 },
+  donutToast: 'GLAZED. +35', donutLines: ['Evidence.', 'For the case file.', 'Still warm.', "Don't tell the Captain."],
+  failTitle: 'BOTH OFFICERS DOWN', failLine: '"Two cops. One warehouse. Zero chairs. Unbelievable." — Capt. Brannigan',
+  clearA: 'Clear. Door on the far wall.', clearB: "Clear. The Duke's got to be behind that last door.",
+  objectives: {
+    a: (n) => `CLEAR THE LOADING DOCK<small>${n} HENCHM${n === 1 ? 'AN' : 'EN'} LEFT</small>`,
+    aDone: 'KICK IN THE DOOR<small>NORTH WALL · STOCKROOM</small>',
+    b: (n) => `CLEAR THE STOCKROOM<small>${n} HENCHM${n === 1 ? 'AN' : 'EN'} LEFT</small>`,
+    bDone: 'FIND THE DUKE<small>"EMPLOYEES ONLY" DOOR</small>',
+    boss: 'TAKE DOWN THE DISCO DUKE',
+  },
+};
+
 export class WarehouseScene extends Scene {
+  /** Level text/tuning hooks (see WAREHOUSE_CFG). */
+  config() { return WAREHOUSE_CFG; }
+  /** Look for regular henchmen. */
+  goonSpec() { return goonSpec(); }
+
   enter() {
     const g = this.game;
+    this.cfg = this.config();
     this.pausable = true;
     this.colliders = [];
     this.barrels = [];
@@ -281,7 +306,7 @@ export class WarehouseScene extends Scene {
     this.placeActor(this.boss);
   }
   addGoon(zone, x, z, alert = false) {
-    const rig = new Rig(goonSpec());
+    const rig = new Rig(this.goonSpec());
     this.scene.add(rig.root);
     const e = { kind: 'goon', rig, x, z, yaw: Math.PI + rand(-0.4, 0.4), hp: 100, maxHp: 100, r: 0.45, zone, alert, dead: false, deadT: 0, gone: false, moveT: rand(0, 1), goal: { x, z }, fireT: rand(0.8, 1.8), stunT: 0, dvx: 0, dvz: 0, speed: rand(2.8, 3.6) };
     this.enemies.push(e);
@@ -414,7 +439,7 @@ export class WarehouseScene extends Scene {
     e.yaw = Math.atan2(-dx, -dz);
     g.stats.kills++;
     g.audio.sfx('goonDie');
-    if (Math.random() < 0.4) this.sub('goon', pick(GOON_DIE));
+    if (Math.random() < 0.4) this.sub('goon', pick(this.cfg.goonDie));
     this.killTimes.push(this.t);
     this.killTimes = this.killTimes.filter((t) => this.t - t < 4);
     if (this.killTimes.length >= 3) { this.killTimes = []; this.worksForMe('TRIPLE TAKEDOWN'); }
@@ -435,8 +460,9 @@ export class WarehouseScene extends Scene {
     this.fx.explosion(_v.set(b.x, 0, b.z), 1.2);
     g.audio.sfx('explosion');
     this.shakeAll(1.2);
-    addCollateral(g.stats, 'OIL DRUM', 300);
-    g.ui.toast('+$300 · OIL DRUM', 'money');
+    const bl = this.cfg.barrel;
+    addCollateral(g.stats, bl.label, bl.cost);
+    g.ui.toast(`+$${bl.cost} · ${bl.label}`, 'money');
     let kills = 0;
     for (const e of this.enemies) {
       if (e.dead || !this.activeZones.has(e.zone)) continue;
@@ -495,7 +521,7 @@ export class WarehouseScene extends Scene {
     g.audio.sfx('hurt');
     const vp = this.vpOf(this.chars.indexOf(ch));
     if (vp >= 0 && this.hud.vps[vp]) { const f = this.hud.vps[vp].flash; f.style.transition = 'none'; f.style.opacity = '1'; void f.offsetWidth; f.style.transition = 'opacity .5s'; f.style.opacity = '0'; }
-    if (ch.hp > 0 && Math.random() < 0.12) this.sub(ch.id, pick(HIT_LINES[ch.id]));
+    if (ch.hp > 0 && Math.random() < 0.12) this.sub(ch.id, pick(this.cfg.hitLines[ch.id]));
     if (ch.hp <= 0) {
       ch.hp = 0;
       ch.down = true;
@@ -503,12 +529,12 @@ export class WarehouseScene extends Scene {
       ch.diveT = 0;
       g.stats.downs++;
       g.audio.sfx('down');
-      this.sub(ch.id, pick(DOWN_LINES[ch.id]), 3.5);
+      this.sub(ch.id, pick(this.cfg.downLines[ch.id]), 3.5);
       if (this.chars.every((c) => c.down)) {
         this.over = true;
         this.run(async () => {
           await this.wait(1.2);
-          g.fail('BOTH OFFICERS DOWN', "\"Two cops. One warehouse. Zero chairs. Unbelievable.\" — Capt. Brannigan");
+          g.fail(this.cfg.failTitle, this.cfg.failLine);
         });
       } else if (g.mode === 1 && this.chars.indexOf(ch) === this.active) {
         this.sub('narrator', 'Your partner will try to revive you. Hang in there.', 3);
@@ -541,13 +567,13 @@ export class WarehouseScene extends Scene {
     if (b.hp <= 0) { b.hp = 0; b.dead = true; this.run(() => this.finale()); return; }
     if (!b.spawned1 && b.hp < b.maxHp * 0.72) {
       b.spawned1 = true;
-      this.sub('duke', 'BOYS! A little help here!', 2.5);
+      this.sub(this.cfg.bossSpeaker, this.cfg.bossHelp1, 2.5);
       this.addGoon('C', -18.5, 86, true); this.addGoon('C', 18.5, 86, true);
     }
     if (!b.monologued && b.hp < b.maxHp * 0.5) { b.monologued = true; this.run(() => this.monologue()); }
     if (!b.spawned2 && b.hp < b.maxHp * 0.3) {
       b.spawned2 = true;
-      this.sub('duke', 'Somebody DO something!', 2.5);
+      this.sub(this.cfg.bossSpeaker, this.cfg.bossHelp2, 2.5);
       this.addGoon('C', -18.5, 70, true); this.addGoon('C', 18.5, 70, true);
     }
   }
@@ -574,7 +600,7 @@ export class WarehouseScene extends Scene {
     if (b.fanT <= 0 && tgt && this.los(b, tgt)) {
       b.fanT = 2.3;
       for (let i = -2; i <= 2; i++) this.enemyShoot(b, tgt, { acc: 0.22, dmg: 7, angOff: i * 0.13 + 0.0001 });
-      if (Math.random() < 0.3) this.sub('duke', pick(['Feel the BEAT!', 'Do the Hustle, pig!', 'Boogie OOGIE oogie!', "This one's a classic!"]), 2);
+      if (Math.random() < 0.3) this.sub(this.cfg.bossSpeaker, pick(this.cfg.bossTaunts), 2);
     }
     b.grenT -= dt;
     if (b.grenT <= 0 && tgt) { b.grenT = rand(4.5, 6.2); this.throwBall(b, tgt); }
@@ -651,7 +677,7 @@ export class WarehouseScene extends Scene {
       if ((dist < 24 && los) || heard) {
         e.alert = true;
         e.fireT = rand(0.7, 1.5);
-        if (Math.random() < 0.5) this.sub('goon', pick(GOON_ALERT));
+        if (Math.random() < 0.5) this.sub('goon', pick(this.cfg.goonAlert));
       } else {
         e.rig.update(dt, { pose: 'idle' });
         this.placeActor(e);
@@ -784,7 +810,8 @@ export class WarehouseScene extends Scene {
     }
     // dodge disco balls
     for (const n of this.grenades) {
-      if (n.landed && Math.hypot(n.x - ch.x, n.z - ch.z) < 3.8) { this.startDive(ch, ch.x - n.x, ch.z - n.z); break; }
+      const nx = n.dodge ? n.tx : n.x, nz = n.dodge ? n.tz : n.z;
+      if ((n.landed || n.dodge) && Math.hypot(nx - ch.x, nz - ch.z) < 3.8) { this.startDive(ch, ch.x - nx, ch.z - nz); break; }
     }
     // follow the leader
     const lf = { x: Math.sin(leader.yaw), z: Math.cos(leader.yaw) }, lr = { x: -Math.cos(leader.yaw), z: Math.sin(leader.yaw) };
@@ -1028,7 +1055,7 @@ export class WarehouseScene extends Scene {
       </div>`;
     g.ui.L.hud.innerHTML = `<div class="hud" id="wh">${two ? vp(0, 0, 50) + vp(1, 50, 50) : vp(0, 0, 100)}
       <div class="objective"></div>
-      <div class="bossbar"><div class="lbl">THE DISCO DUKE</div><div class="bar pink"><i></i></div></div></div>`;
+      <div class="bossbar"><div class="lbl">${this.cfg.bossName}</div><div class="bar pink"><i></i></div></div></div>`;
     const root = g.ui.L.hud.querySelector('#wh');
     this.hud = {
       root,
@@ -1090,10 +1117,11 @@ export class WarehouseScene extends Scene {
     });
     // objective
     const [dA, dB] = this.doors;
+    const O = this.cfg.objectives;
     let obj;
-    if (!dA.open) { const n = this.zoneAlive('A'); obj = n ? `CLEAR THE LOADING DOCK<small>${n} HENCHM${n === 1 ? 'AN' : 'EN'} LEFT</small>` : 'KICK IN THE DOOR<small>NORTH WALL · STOCKROOM</small>'; }
-    else if (!dB.open) { const n = this.zoneAlive('B'); obj = n ? `CLEAR THE STOCKROOM<small>${n} HENCHM${n === 1 ? 'AN' : 'EN'} LEFT</small>` : 'FIND THE DUKE<small>"EMPLOYEES ONLY" DOOR</small>'; }
-    else obj = 'TAKE DOWN THE DISCO DUKE';
+    if (!dA.open) { const n = this.zoneAlive('A'); obj = n ? O.a(n) : O.aDone; }
+    else if (!dB.open) { const n = this.zoneAlive('B'); obj = n ? O.b(n) : O.bDone; }
+    else obj = O.boss;
     if (this.hudObj !== obj) { this.hudObj = obj; H.obj.innerHTML = obj; }
     const showBoss = this.boss.active && !this.boss.dead;
     H.boss.classList.toggle('on', showBoss);
@@ -1158,7 +1186,7 @@ export class WarehouseScene extends Scene {
         if (ch.reviveT >= 1.6) {
           ch.down = false; ch.hp = 45; ch.getupT = 0.5; ch.reviveT = 0;
           g.audio.sfx('pickup');
-          this.sub(other.id, pick(REVIVE_LINES));
+          this.sub(other.id, pick(this.cfg.reviveLines));
         }
       } else ch.reviveT = Math.max(0, ch.reviveT - dt * 0.5);
     }
@@ -1172,8 +1200,8 @@ export class WarehouseScene extends Scene {
           ch.hp = Math.min(ch.maxHp, ch.hp + 35);
           g.stats.donuts++;
           g.audio.sfx('pickup');
-          g.ui.toast('GLAZED. +35', 'good');
-          if (Math.random() < 0.5) this.sub(ch.id, pick(['Evidence.', 'For the case file.', 'Still warm.', "Don't tell the Captain."]));
+          g.ui.toast(this.cfg.donutToast, 'good');
+          if (Math.random() < 0.5) this.sub(ch.id, pick(this.cfg.donutLines));
           break;
         }
       }
@@ -1194,7 +1222,7 @@ export class WarehouseScene extends Scene {
       if (!this.cleared.has(z) && this.activeZones.has(z) && this.zoneAlive(z) === 0) {
         this.cleared.add(z);
         g.ui.toast('ROOM CLEAR', 'good');
-        this.sub(z === 'A' ? 'hammer' : 'delgado', z === 'A' ? 'Clear. Door on the far wall.' : "Clear. The Duke's got to be behind that last door.");
+        this.sub(z === 'A' ? 'hammer' : 'delgado', z === 'A' ? this.cfg.clearA : this.cfg.clearB);
       }
     }
   }

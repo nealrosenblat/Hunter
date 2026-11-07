@@ -689,7 +689,7 @@ export class ChaseScene extends Scene {
         <div class="tl"><div class="lbl">${this.T.villainHud}</div><div class="bar pink"><i id="grit"></i></div><div class="small">GRIT</div></div>
         <div class="tc"><div class="gap">GAP <b id="gap">0</b> M</div><div class="warn" id="warn">HE'S GETTING AWAY!</div></div>
         <div class="tr"><div class="lbl">COLLATERAL <b id="coll" style="color:var(--gold)">$0</b></div><div class="lbl">REPAIR BILL <b id="rep" style="color:var(--orange)">$0</b></div></div>
-        <div class="bl"><div class="lbl">P1 · HAMMER · DRIVING</div><div class="ammo" id="ammo"></div><div class="small">${g.mode === 2 ? 'P2 · DELGADO · AIM &amp; SHOOT' : 'DELGADO IS COVERING YOU'}</div></div>
+        <div class="bl"><div class="lbl">P1 · HAMMER · DRIVING</div><div class="gammo" id="ammo"></div><div class="small">${g.mode === 2 ? 'P2 · DELGADO · AIM &amp; SHOOT' : 'DELGADO IS COVERING YOU'}</div></div>
         <div class="br"><div class="speedo"><b id="mph">0</b><span>MPH</span></div></div>
         <div class="reticle" id="ret"></div>
       </div>`;
