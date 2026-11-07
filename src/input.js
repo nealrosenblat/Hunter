@@ -45,6 +45,9 @@ export class Input {
       if (e.button < 3) { this.mouseDown[e.button] = true; this.mousePressed[e.button] = true; }
     });
     addEventListener('mouseup', (e) => { if (e.button < 3) this.mouseDown[e.button] = false; });
+    // taps and clicks anywhere except on the on-screen touch controls count as "confirm"
+    this.tapped = false;
+    addEventListener('pointerdown', (e) => { if (!(e.target.closest && e.target.closest('.tc'))) this.tapped = true; }, { capture: true });
     addEventListener('contextmenu', (e) => e.preventDefault());
     document.addEventListener('pointerlockchange', () => {
       this.locked = document.pointerLockElement === game.canvas;
@@ -71,6 +74,8 @@ export class Input {
 
   endFrame() {
     this.pressed.clear();
+    this.tapped = false;
+    this.game.touch?.endFrame();
     this.mousePressed = [false, false, false];
     this.mouseDX = 0;
     this.mouseDY = 0;
@@ -143,6 +148,19 @@ export class Input {
       c.throttle = Math.max(c.throttle, p.buttons[7] || 0, this.btn(p, 0) ? 1 : 0, -ly > 0.3 ? 1 : 0);
       c.brake = Math.max(c.brake, p.buttons[6] || 0, this.btn(p, 1) ? 1 : 0, ly > 0.3 ? 1 : 0);
     }
+    const t = this.game.touch;
+    if (pi === 0 && t && t.used && t.mode) {
+      c.mx += t.stick.x; c.my += t.stick.y;
+      c.mouseTurn += t.look.dx * 0.009;
+      c.fire ||= t.held('fire');
+      c.firePressed ||= t.pressed('fire');
+      c.dive ||= t.pressed('dive');
+      c.action ||= t.pressed('action');
+      c.reload ||= t.pressed('reload');
+      c.swap ||= t.pressed('swap');
+      if (t.stick.y < -0.35) c.brake = 1;
+      else if (t.mode === 'drive') c.throttle = 1;
+    }
     c.mx = Math.max(-1, Math.min(1, c.mx));
     c.my = Math.max(-1, Math.min(1, c.my));
     c.turn = Math.max(-1, Math.min(1, c.turn));
@@ -152,7 +170,7 @@ export class Input {
   // ---------- menu helpers (any device) ----------
   confirmPressed() {
     if (this.anyPressed(['Enter', 'Space', 'NumpadEnter'])) return true;
-    if (this.mousePressed[0] && !this.locked) return true;
+    if (this.tapped && !this.locked) return true;
     return this.pads.some((p) => this.btnPressed(p, 0) || this.btnPressed(p, 9));
   }
   backPressed() {
@@ -161,6 +179,7 @@ export class Input {
   }
   pausePressed() {
     if (this.anyPressed(['Escape', 'KeyP'])) return true;
+    if (this.game.touch?.pressed('pause')) return true;
     return this.pads.some((p) => this.btnPressed(p, 9));
   }
   navPressed() {

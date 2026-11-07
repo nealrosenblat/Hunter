@@ -88,6 +88,8 @@ export class ChaseScene extends Scene {
     this.run(() => this.intro());
   }
 
+  touchMode() { return this.phase === 'drive' ? 'drive' : null; }
+
   // ------------------------------------------------------------------ world
   buildWorld() {
     const s = this.scene, T = this.track;
@@ -430,7 +432,8 @@ export class ChaseScene extends Scene {
     g.audio.playSong('chase');
     g.audio.engineStart();
     ui.toast('CATCH THE DUKE!', 'big');
-    ui.sub('narrator', g.mode === 2 ? 'P1: W/S gas & brake, A/D steer. P2: arrows aim, ENTER shoots.' : 'W/S gas & brake, A/D steer. Ram him! Delgado shoots automatically.', 5);
+    if (g.touch.used) ui.sub('narrator', 'The gas is automatic. Steer with your left thumb and ram him! Delgado shoots automatically.', 5);
+    else ui.sub('narrator', g.mode === 2 ? 'P1: W/S gas & brake, A/D steer. P2: arrows aim, ENTER shoots.' : 'W/S gas & brake, A/D steer. Ram him! Delgado shoots automatically.', 5);
   }
 
   async endChase(wrecked) {

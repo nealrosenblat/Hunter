@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Input } from './input.js';
 import { Audio } from './audio.js';
 import { UI } from './ui.js';
+import { TouchControls } from './touch.js';
 import { newStats } from './stats.js';
 import { TitleScene } from './scenes/title.js';
 import { CreditsScene } from './scenes/credits.js';
@@ -43,6 +44,12 @@ export const CONTROLS_HTML = `
     <kbd>Enter</kbd> fire, <kbd>R-Shift</kbd> dive,<br>
     <kbd>/</kbd> interact, <kbd>.</kbd> reload<br>
     In the chase, P2 aims Delgado's shots with the arrows.</div>
+  <div><h3>TOUCH (PHONE / TABLET)</h3>
+    Tap to start, choose and advance dialogue.<br>
+    Left thumb: move · drag the right side to turn<br>
+    Buttons: <b>FIRE</b>, <b>DIVE</b>, <b>KICK</b>, <b>RELOAD</b>, <b>SWAP</b><br>
+    Driving: auto-gas, steer with the left thumb, pull back to brake<br>
+    ❚❚ pauses. Hold your phone sideways.</div>
   <div><h3>GAMEPAD</h3>
     <kbd>L-stick</kbd> move · <kbd>R-stick</kbd> turn<br>
     <kbd>RT</kbd>/<kbd>A</kbd> fire / gas · <kbd>LT</kbd> brake<br>
@@ -65,6 +72,7 @@ class Game {
     this.input = new Input(this);
     this.audio = new Audio();
     this.ui = new UI(this);
+    this.touch = new TouchControls(this);
     this.mode = this.params.get('players') === '2' ? 2 : 1;
     this.stats = newStats();
     this.snapshot = newStats();
@@ -78,8 +86,8 @@ class Game {
     this.resize();
     addEventListener('resize', () => this.resize());
     const unlock = () => this.audio.init();
-    addEventListener('keydown', unlock);
-    addEventListener('pointerdown', unlock);
+    // iOS only unlocks audio on touchend/click, so listen to all of them
+    for (const ev of ['keydown', 'pointerdown', 'touchend', 'click']) addEventListener(ev, unlock);
     this.last = performance.now();
     this.frame = this.frame.bind(this);
     requestAnimationFrame(this.frame);
@@ -196,6 +204,7 @@ class Game {
       }
       s.render();
     }
+    this.touch.setMode(s && !this.paused && !this.failed && !this.ui.busy && s.touchMode ? s.touchMode() : null);
     this.ui.update(rdt);
     this.input.endFrame();
   }

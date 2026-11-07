@@ -26,7 +26,7 @@ export class TitleScene extends Scene {
         <div class="logo"><span class="l1">HAMMER</span><span class="l2">&amp;</span><span class="l3">DELGADO</span></div>
         <div class="tagline">SEASON 1 · EPISODE 1 · "THE POLYESTER CONNECTION"</div>
       </div>
-      <div class="press">PRESS START</div>
+      <div class="press">${matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window ? 'TAP TO START' : 'PRESS START'}</div>
       <div class="legal">An affectionate parody of 1980s TV cop shows. All characters are fictional. No fruit carts were harmed. (Several were.)</div>`;
     g.ui.fade(0, 1.2);
     this.stage = 'press';
@@ -85,7 +85,7 @@ export class TitleScene extends Scene {
     const g = this.game;
     if (this.stage === 'press') {
       const inp = g.input;
-      if (inp.pressed.size || inp.mousePressed[0] || inp.pads.some((p) => p.buttons.some((b, i) => inp.btnPressed(p, i)))) {
+      if (inp.pressed.size || inp.tapped || inp.pads.some((p) => p.buttons.some((b, i) => inp.btnPressed(p, i)))) {
         g.audio.init();
         g.audio.playSong('theme');
         g.audio.sfx('confirm');

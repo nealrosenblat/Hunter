@@ -47,15 +47,17 @@ export class WarehouseScene extends Scene {
     this.cutCam = new THREE.PerspectiveCamera(55, 1, 0.1, 200);
     for (const c of this.cams) c.position.set(0, 2.4, -1);
     this.buildHud();
-    this.onClick = () => { if (!this.cutscene && !g.paused && !g.failed) g.input.requestLock(); };
-    g.canvas.addEventListener('mousedown', this.onClick);
+    this.onClick = (e) => { if (e.pointerType === 'mouse' && !this.cutscene && !g.paused && !g.failed) g.input.requestLock(); };
+    g.canvas.addEventListener('pointerdown', this.onClick);
     this.run(() => this.intro());
   }
 
   exit() {
-    this.game.canvas.removeEventListener('mousedown', this.onClick);
+    this.game.canvas.removeEventListener('pointerdown', this.onClick);
     super.exit();
   }
+
+  touchMode() { return !this.cutscene && !this.over ? 'shoot' : null; }
 
   // ------------------------------------------------------------------ level
   addCollider(minX, maxX, minZ, maxZ, h, extra = {}) {
@@ -877,7 +879,8 @@ export class WarehouseScene extends Scene {
     this.endCut();
     this.updateCameras(0);
     ui.toast('CLEAR THE LOADING DOCK', 'big');
-    ui.sub('narrator', g.mode === 2
+    if (g.touch.used) ui.sub('narrator', 'Left thumb moves, drag the right side to turn. FIRE has aim assist. DIVE dodges. Tap KICK at doors. Donuts heal.', 6);
+    else ui.sub('narrator', g.mode === 2
       ? 'P1 WASD + mouse (click to lock) · P2 arrows + ENTER · dive, reload, F or / to kick doors. Revive your partner by standing close.'
       : 'Click to use the mouse (or Q/E to turn). SPACE/click fires with aim assist. SHIFT dives. TAB swaps partners. Donuts heal.', 6);
   }

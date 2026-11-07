@@ -23,6 +23,10 @@ export class UI {
     this.L.letterbox.id = 'letterbox';
     this.L.letterbox.innerHTML = '<div class="lb top"></div><div class="lb bot"></div>';
     this.L.fade.id = 'fade';
+    const rot = document.createElement('div');
+    rot.className = 'rotate';
+    rot.textContent = 'TURN YOUR PHONE SIDEWAYS FOR THE BEST VIEW';
+    this.root.appendChild(rot);
     this.dialog = null;
     this.menuState = null;
     this.subQueue = [];
@@ -142,8 +146,8 @@ export class UI {
       st.refresh = refresh;
       refresh();
       btns.forEach((b, i) => {
-        b.addEventListener('mouseenter', () => { if (st.sel !== i) { st.sel = i; refresh(); this.game.audio.sfx('menu', 0.5); } });
-        b.addEventListener('mousedown', (e) => { e.stopPropagation(); st.sel = i; this.choose(); });
+        b.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse' && st.sel !== i) { st.sel = i; refresh(); this.game.audio.sfx('menu', 0.5); } });
+        b.addEventListener('pointerdown', (e) => { e.preventDefault(); st.sel = i; this.choose(); });
       });
     });
   }
