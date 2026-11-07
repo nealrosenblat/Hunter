@@ -21,3 +21,14 @@ const html = readFileSync('index.html', 'utf8')
 mkdirSync('dist', { recursive: true });
 writeFileSync('dist/hammer-and-delgado.html', html);
 console.log(`dist/hammer-and-delgado.html  ${(html.length / 1024).toFixed(0)} KB`);
+
+// Same game as a page fragment (no doctype/html/head/body) for hosts that supply their own skeleton.
+const fragment = html
+  .replace(/<!doctype html>\s*/i, '')
+  .replace(/<\/?html[^>]*>\s*/gi, '')
+  .replace(/<\/?head>\s*/gi, '')
+  .replace(/<\/?body>\s*/gi, '')
+  .replace(/<meta charset="utf-8">\s*/i, '')
+  .replace(/<meta name="viewport"[^>]*>\s*/i, '');
+writeFileSync('dist/fragment.html', fragment);
+console.log(`dist/fragment.html  ${(fragment.length / 1024).toFixed(0)} KB`);

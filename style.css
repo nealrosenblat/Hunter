@@ -9,6 +9,7 @@
   --font-display: 'Bungee', 'Arial Black', Impact, sans-serif;
   --font-body: 'Rubik', 'Arial', sans-serif;
   --font-type: 'Courier Prime', 'Courier New', monospace;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
