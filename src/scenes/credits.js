@@ -117,6 +117,9 @@ export class CreditsScene extends Scene {
     this.game.audio.sfx('clang');
   }
 
+  canSkip() { return !this.done && this.t > 0.5; }
+  skip() { this.finish(); }
+
   finish() {
     if (this.done) return;
     this.done = true;

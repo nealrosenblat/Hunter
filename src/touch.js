@@ -107,8 +107,7 @@ export class TouchControls {
     this.mode = mode;
     this.layer.className = mode || '';
     if (!mode) this.reset();
-    this.actBtn.textContent = mode === 'drive' ? 'HORN' : 'KICK';
-    this.hint.textContent = mode === 'drive' ? 'AUTO-GAS · LEFT THUMB STEERS · PULL BACK TO BRAKE' : mode === 'shoot' ? 'LEFT THUMB MOVES · DRAG RIGHT SIDE TO TURN' : '';
+    this.hint.textContent = mode === 'drive' ? 'AUTO-GAS · LEFT THUMB STEERS · PULL BACK TO BRAKE · HOLD FIRE' : mode === 'shoot' ? 'LEFT THUMB MOVES · DRAG RIGHT SIDE TO TURN' : '';
   }
 
   endFrame() {

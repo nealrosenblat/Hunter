@@ -10,7 +10,7 @@ All of the characters, places and music are original. The music and sound effect
 
 1. **Cold open and credits:** a TV-style opening sequence with a synth-and-sax theme.
 2. **The Captain's office:** you're briefed on a counterfeit-jeans ring run by *the Disco Duke*.
-3. **The L.A. River chase:** drive the Brougham down a concrete river channel (shot "day-for-night"). Ram the Duke's car while Delgado shoots out the window. Hubcaps, doors and bumpers fall off as the car takes damage. Fruit carts and plate glass appear for no reason.
+3. **The L.A. River chase:** drive the Brougham down a concrete river channel (shot "day-for-night"). Ram the Duke's car and fire Gerald one-handed out the driver's window while Delgado covers you. Hubcaps, doors and bumpers fall off as the car takes damage. Fruit carts and plate glass appear for no reason.
 4. **The Duke's warehouse:** a third-person shootout through three rooms. Kick doors in (Hammer) or open them politely (Delgado), dive in slow motion, eat donuts to heal, then fight the Disco Duke on his light-up dance floor.
 5. **The verdict:** the Captain grades your case file, including collateral damage, the Brougham's repair bill, and how many times your partner has been taken hostage this season.
 6. **Freeze frame.** Roll credits.
@@ -26,14 +26,15 @@ All of the characters, places and music are original. The music and sound effect
 |---|---|---|---|
 | Move / drive | W A S D | ↑ ↓ | Left stick (RT gas, LT brake) |
 | Turn | Mouse (click to lock), Q E or ← → | ← → | Right stick |
-| Fire | Click / Space | Enter | RT / A |
+| Fire | Click / Space | Enter | RT / A (driving: RB) |
 | Dramatic dive | Shift | Right Shift | B |
 | Kick door / interact / horn | F | / | X |
+| Skip cutscene | Backspace (or the SKIP button) | | Back / Select |
 | Reload | R | . | LB |
 | Swap partner (1P) | Tab | | Y |
 | Pause | Esc / P | | Start |
 
-Aim assist is generous. Press **M** to mute.
+Aim assist is generous. Press **M** to mute. Every dialogue scene has **SKIP ▸▸** and **☰ MENU** buttons, and the title menus all have a **BACK** option.
 
 ## Running it
 

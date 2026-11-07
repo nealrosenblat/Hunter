@@ -77,6 +77,7 @@ export class ChaseScene extends Scene {
     this.escapeT = 0;
     this.aiShootT = 1;
     this.p2 = { rx: 0, ry: 0.1, cd: 0 };
+    this.gerald = { ammo: 6, cd: 0, reload: 0 }; // Hammer's .44, fired one-handed out the driver's window
     this.quips = new Set();
     this.screechCD = 0;
     this.camera.fov = 68;
@@ -413,6 +414,24 @@ export class ChaseScene extends Scene {
   // ------------------------------------------------------------------ script
   async intro() {
     const g = this.game, ui = g.ui;
+    await this.cut(() => this.introLines(), () => {
+      ui.fade(0, 0.2);
+      if (!this.dukeGo) { this.dukeGo = true; g.audio.sfx('screech'); }
+    });
+    ui.letterbox(false);
+    this.camMode = 'chase';
+    this.phase = 'drive';
+    this.pc.v = Math.max(this.pc.v, 24);
+    this.duke.v = Math.max(this.duke.v, 30);
+    g.audio.playSong('chase');
+    g.audio.engineStart();
+    ui.toast('CATCH THE DUKE!', 'big');
+    if (g.touch.used) ui.sub('narrator', 'The gas is automatic. Steer with your left thumb, tap FIRE to shoot Gerald, and ram him!', 5);
+    else ui.sub('narrator', g.mode === 2 ? 'P1: W/S gas & brake, A/D steer, SPACE fires Gerald. P2: arrows aim, ENTER shoots.' : 'W/S gas & brake, A/D steer, SPACE or click fires Gerald. Shoot him and ram him!', 5);
+  }
+
+  async introLines() {
+    const g = this.game, ui = g.ui;
     ui.letterbox(true);
     await this.w(ui.fade(0, 0.8));
     await this.w(ui.locationCard(['THE L.A. RIVER', '9:52 PM'], 1.2));
@@ -424,16 +443,6 @@ export class ChaseScene extends Scene {
     await this.say('delgado', "He's heading downriver!");
     await this.say('hammer', 'Hang on to something.');
     await this.say('delgado', "To what? My door's held on with duct tape.");
-    ui.letterbox(false);
-    this.camMode = 'chase';
-    this.phase = 'drive';
-    this.pc.v = Math.max(this.pc.v, 24);
-    this.duke.v = Math.max(this.duke.v, 30);
-    g.audio.playSong('chase');
-    g.audio.engineStart();
-    ui.toast('CATCH THE DUKE!', 'big');
-    if (g.touch.used) ui.sub('narrator', 'The gas is automatic. Steer with your left thumb and ram him! Delgado shoots automatically.', 5);
-    else ui.sub('narrator', g.mode === 2 ? 'P1: W/S gas & brake, A/D steer. P2: arrows aim, ENTER shoots.' : 'W/S gas & brake, A/D steer. Ram him! Delgado shoots automatically.', 5);
   }
 
   async endChase(wrecked) {
@@ -455,15 +464,17 @@ export class ChaseScene extends Scene {
     await this.wait(1.6);
     g.audio.engineStop();
     ui.letterbox(true);
-    if (wrecked) {
-      await this.say('delgado', "He's bailing out! He's running for that warehouse on Mission Road!");
-      await this.say('hammer', "Disco's dead, Duke.");
-      await this.say('delgado', "...That doesn't even make sense, Rex.");
-      await this.say('hammer', 'Works for me.');
-    } else {
-      await this.say('delgado', "He's pulling off at the old Mission Road warehouses!");
-      await this.say('hammer', "Then that's where we're going.");
-    }
+    await this.cut(async () => {
+      if (wrecked) {
+        await this.say('delgado', "He's bailing out! He's running for that warehouse on Mission Road!");
+        await this.say('hammer', "Disco's dead, Duke.");
+        await this.say('delgado', "...That doesn't even make sense, Rex.");
+        await this.say('hammer', 'Works for me.');
+      } else {
+        await this.say('delgado', "He's pulling off at the old Mission Road warehouses!");
+        await this.say('hammer', "Then that's where we're going.");
+      }
+    });
     g.audio.stopMusic(0.6);
     await this.w(ui.fade(1, 0.7));
     g.goto('warehouse');
@@ -477,12 +488,12 @@ export class ChaseScene extends Scene {
         <div class="tl"><div class="lbl">THE DISCO DUKE</div><div class="bar pink"><i id="grit"></i></div><div class="small">GRIT</div></div>
         <div class="tc"><div class="gap">GAP <b id="gap">0</b> M</div><div class="warn" id="warn">HE'S GETTING AWAY!</div></div>
         <div class="tr"><div class="lbl">COLLATERAL <b id="coll" style="color:var(--gold)">$0</b></div><div class="lbl">REPAIR BILL <b id="rep" style="color:var(--orange)">$0</b></div></div>
-        <div class="bl"><div class="lbl">P1 · HAMMER · DRIVING</div><div class="small">${g.mode === 2 ? 'P2 · DELGADO · AIM &amp; SHOOT' : 'DELGADO IS SHOOTING · F = HORN'}</div></div>
+        <div class="bl"><div class="lbl">P1 · HAMMER · DRIVING</div><div class="ammo" id="ammo"></div><div class="small">${g.mode === 2 ? 'P2 · DELGADO · AIM &amp; SHOOT' : 'DELGADO IS COVERING YOU'}</div></div>
         <div class="br"><div class="speedo"><b id="mph">0</b><span>MPH</span></div></div>
         <div class="reticle" id="ret"></div>
       </div>`;
     const q = (id) => g.ui.L.hud.querySelector('#' + id);
-    this.hud = { grit: q('grit'), gap: q('gap'), warn: q('warn'), coll: q('coll'), rep: q('rep'), mph: q('mph'), ret: q('ret') };
+    this.hud = { grit: q('grit'), gap: q('gap'), warn: q('warn'), coll: q('coll'), rep: q('rep'), mph: q('mph'), ret: q('ret'), ammo: q('ammo') };
     this.hudCache = {};
     this.hud.root = g.ui.L.hud.firstElementChild;
   }
@@ -501,6 +512,11 @@ export class ChaseScene extends Scene {
     this.setHud('coll', s.collateral, (v) => (h.coll.textContent = fmtMoney(v)));
     this.setHud('rep', s.repair, (v) => (h.rep.textContent = fmtMoney(v)));
     this.setHud('mph', Math.round(this.pc.v * 2.237), (v) => (h.mph.textContent = v));
+    const gr = this.gerald;
+    this.setHud('ammo', gr.reload > 0 ? -1 : gr.ammo, (v) => {
+      h.ammo.classList.toggle('reload', v < 0);
+      h.ammo.textContent = v < 0 ? 'GERALD · RELOADING…' : 'GERALD ' + '●'.repeat(v) + '○'.repeat(6 - v);
+    });
     const p2 = this.game.mode === 2 && this.phase === 'drive';
     h.ret.style.display = p2 ? 'block' : 'none';
     if (p2) { h.ret.style.left = ((this.p2.rx + 1) / 2) * 100 + '%'; h.ret.style.top = ((1 - this.p2.ry) / 2) * 100 + '%'; }
@@ -519,6 +535,7 @@ export class ChaseScene extends Scene {
       thr = c.throttle; brk = c.brake;
       steer = clamp(c.mx + c.turn, -1, 1);
       if (c.action) { g.audio.sfx('horn'); g.stats.horn++; }
+      this.updateGerald(dt, c);
     } else if (this.phase === 'end') brk = 0.6;
     pc.steer = damp(pc.steer, steer, 10, dt);
     const vmax = 50 * (1 - pc.damage * 0.0008);
@@ -744,6 +761,48 @@ export class ChaseScene extends Scene {
     }
   }
 
+  /** Driver fires Gerald out of the window. Auto-aims at the Duke's car when he's in range. */
+  updateGerald(dt, c) {
+    const g = this.game, gr = this.gerald, duke = this.duke, pc = this.pc;
+    gr.cd -= dt;
+    if (gr.reload > 0) {
+      gr.reload -= dt;
+      if (gr.reload <= 0) { gr.ammo = 6; g.audio.sfx('spin', 0.5); }
+      return;
+    }
+    if (!c.driveFire || gr.cd > 0) return;
+    gr.cd = 0.3;
+    gr.ammo--;
+    const gap = duke.s - pc.s;
+    const from = this.car.root.localToWorld(_v.set(1.1, 1.3, 0.7));
+    const inRange = gap > 3 && gap < 130 && !duke.wrecked;
+    const to = _v2;
+    let hit = false;
+    if (inRange) {
+      this.dukeCar.root.getWorldPosition(to);
+      to.y += 0.8;
+      const lateral = Math.abs(duke.d - pc.d);
+      hit = Math.random() < (gap < 35 ? 0.85 : gap < 70 ? 0.7 : gap < 105 ? 0.5 : 0.3) - Math.min(0.2, lateral * 0.02);
+      if (!hit) to.add(_v3.set(rand(-3, 3), rand(-0.5, 2), rand(-3, 3)));
+    } else {
+      const yaw = this.car.root.rotation.y;
+      to.copy(from).add(_v3.set(Math.sin(yaw) * 90, rand(1, 4), Math.cos(yaw) * 90));
+    }
+    this.fx.muzzle(from);
+    this.fx.tracer(from, to);
+    g.audio.sfx('magnum', 0.55);
+    this.shake = Math.max(this.shake, 0.25);
+    g.stats.shots++;
+    if (hit) {
+      duke.grit -= 2.2;
+      g.stats.hits++;
+      this.fx.sparks(to, 8);
+      g.audio.sfx('impact', 0.6);
+      if (Math.random() < 0.12) g.ui.sub('duke', pick(['Not the CHROME!', 'You shot my HOOD ORNAMENT!', 'That is a LEASE!']), 2);
+    } else if (inRange && Math.random() < 0.3) g.audio.sfx('ricochet', 0.5);
+    if (gr.ammo <= 0) { gr.reload = 1.5; g.audio.sfx('reload', 0.7); }
+  }
+
   windowPos(out) {
     out.set(-1.05, 1.3, 0.35);
     return this.car.root.localToWorld(out);
@@ -755,7 +814,7 @@ export class ChaseScene extends Scene {
     if (g.mode === 1) {
       this.aiShootT -= dt;
       if (this.aiShootT <= 0 && gap > 5 && gap < 115) {
-        this.aiShootT = 0.42;
+        this.aiShootT = 0.75; // Delgado covers; Hammer's Gerald does the heavy lifting
         const from = this.windowPos(_v);
         this.dukeCar.root.getWorldPosition(_v2);
         _v2.y += 0.8;

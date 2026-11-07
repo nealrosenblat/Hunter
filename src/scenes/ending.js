@@ -35,6 +35,21 @@ export class EndingScene extends Scene {
   }
 
   async script() {
+    const g = this.game;
+    await this.cut(() => this.scriptLines(), () => {
+      g.ui.fade(0, 0.2);
+      this.talk = null;
+      this.frozen = true;
+      g.canvas.classList.add('freeze');
+      g.audio.stopMusic(0.1);
+    });
+    this.roll();
+  }
+
+  canSkip() { return this.rollEl ? !this.done && this.rollY > 1 : super.canSkip(); }
+  skip() { if (this.rollEl) this.finish(); else super.skip(); }
+
+  async scriptLines() {
     const g = this.game, ui = g.ui;
     await this.w(ui.fade(0, 0.9));
     await this.w(ui.locationCard(['OUTSIDE DIVISION 7', 'LATER THAT EVENING'], 1.0));
@@ -69,7 +84,6 @@ export class EndingScene extends Scene {
     g.audio.stopMusic(0.1);
     g.audio.sfx('freeze');
     await this.wait(1.4);
-    this.roll();
   }
 
   roll() {

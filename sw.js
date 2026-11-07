@@ -1,6 +1,6 @@
 // Offline support. Network first (so you always get the newest version when online),
 // falling back to the cached copy when there's no connection.
-const CACHE = 'hammer-delgado-v2';
+const CACHE = 'hammer-delgado-v3';
 const CORE = [
   './', 'index.html', 'style.css', 'manifest.webmanifest', 'vendor/three.module.min.js',
   'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png',

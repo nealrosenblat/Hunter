@@ -141,6 +141,8 @@ html, body {
   box-shadow: 0 8px 0 rgba(0,0,0,.5);
 }
 .menu.low { top: auto; bottom: 7vh; transform: translateX(-50%); background: rgba(8,6,28,.6); }
+.menu.low h2 { font-size: 1.25em; }
+.menu.low p { font-size: .85em; margin-bottom: .6em; }
 .menu h2 { font-family: var(--font-display); font-weight: 400; margin: 0 0 .25em; font-size: 2em; color: var(--gold); -webkit-text-stroke: 1px #000; }
 .menu p { margin: 0 0 1em; font-weight: 700; line-height: 1.4; opacity: .92; }
 .menu .items { display: flex; flex-direction: column; gap: .4em; }
@@ -207,6 +209,8 @@ html, body {
 .hud .tc { position: absolute; left: 0; right: 0; top: 2.5vh; text-align: center; }
 .hud .bl { position: absolute; left: max(2vw, env(safe-area-inset-left, 0px)); bottom: 3vh; line-height: 1.4; }
 .hud .br { position: absolute; right: max(2vw, env(safe-area-inset-right, 0px)); bottom: 2.5vh; text-align: right; }
+.ammo { font-family: var(--font-body); font-weight: 900; font-size: 1.1em; letter-spacing: .1em; color: var(--gold); -webkit-text-stroke: 1px #000; }
+.ammo.reload { color: var(--orange); font-size: .8em; letter-spacing: .02em; }
 .hud .lbl { font-size: .8em; letter-spacing: .06em; margin-bottom: .2em; }
 .hud .small { font-family: var(--font-body); font-weight: 700; font-size: .8em; opacity: .85; }
 .speedo b { font-size: 3.4em; line-height: 1; color: var(--gold); -webkit-text-stroke: 2px #000; }
@@ -286,6 +290,21 @@ html, body {
   .bar { width: 8em; }
 }
 
+/* ---------- cutscene MENU / SKIP buttons ---------- */
+#layer-cutbar { display: none; }
+#layer-cutbar.on { display: block; }
+#layer-cutbar .cb {
+  position: absolute; top: max(10px, env(safe-area-inset-top, 0px)); pointer-events: auto; touch-action: none;
+  font-family: var(--font-display); font-size: 12px; letter-spacing: .04em; color: #fff; padding: .7em 1.1em;
+  background: rgba(8,6,28,.72); border: 2px solid rgba(255,255,255,.8); border-radius: 8px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+#layer-cutbar .cb:hover { background: var(--pink); }
+#layer-cutbar .cb-skip { right: max(12px, env(safe-area-inset-right, 0px)); }
+#layer-cutbar .cb-menu { left: max(12px, env(safe-area-inset-left, 0px)); }
+#layer-cutbar .cb-skip::after { content: ' (BKSP)'; opacity: .6; font-size: .8em; }
+@media (pointer: coarse) { #layer-cutbar .cb-skip::after { content: ''; } }
+
 /* ---------- touch controls ---------- */
 #layer-touch { display: none; }
 #layer-touch.drive, #layer-touch.shoot { display: block; }
@@ -312,7 +331,8 @@ html, body {
 .tb.down { background: rgba(255,63,164,.85); transform: scale(.94); }
 .tb-fire { grid-area: fire; width: 92px; height: 92px; font-size: 15px; background: rgba(200,30,30,.6); }
 .tb-dive { grid-area: dive; } .tb-action { grid-area: action; } .tb-reload { grid-area: reload; } .tb-swap { grid-area: swap; }
-#layer-touch.drive .tb-fire, #layer-touch.drive .tb-dive, #layer-touch.drive .tb-reload, #layer-touch.drive .tb-swap { display: none; }
+#layer-touch.drive .tb-action, #layer-touch.drive .tb-dive, #layer-touch.drive .tb-reload, #layer-touch.drive .tb-swap { display: none; }
+#layer-touch.drive .tb-fire { width: 104px; height: 104px; }
 #layer-touch.drive .tbtns { bottom: 34%; }
 .tpause {
   position: absolute; left: 50%; bottom: max(10px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);

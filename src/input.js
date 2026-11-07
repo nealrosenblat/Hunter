@@ -111,6 +111,7 @@ export class Input {
       mx: 0, my: 0, turn: 0, look: 0, mouseTurn: 0,
       fire: false, firePressed: false, dive: false, action: false, reload: false, swap: false,
       throttle: 0, brake: 0,
+      driveFire: false, // shooting from the driver's seat: fire keys, click, RB, touch FIRE (not the gas buttons)
     };
     for (const m of src.maps) {
       c.my += (this.anyKey(m.up) ? 1 : 0) - (this.anyKey(m.down) ? 1 : 0);
@@ -118,6 +119,7 @@ export class Input {
       c.turn += (this.anyKey(m.turnR) ? 1 : 0) - (this.anyKey(m.turnL) ? 1 : 0);
       c.fire ||= this.anyKey(m.fire);
       c.firePressed ||= this.anyPressed(m.fire);
+      c.driveFire ||= this.anyKey(m.fire);
       c.dive ||= this.anyPressed(m.dive);
       c.action ||= this.anyPressed(m.action);
       c.reload ||= this.anyPressed(m.reload);
@@ -129,6 +131,7 @@ export class Input {
       c.mouseTurn += this.mouseDX * 0.0028;
       c.fire ||= this.mouseDown[0] && this.locked;
       c.firePressed ||= this.mousePressed[0] && this.locked;
+      c.driveFire ||= this.mouseDown[0] && !this.game.touch?.used;
     }
     for (const p of src.pads) {
       const ax = p.axes;
@@ -144,6 +147,7 @@ export class Input {
       c.dive ||= this.btnPressed(p, 1);
       c.action ||= this.btnPressed(p, 2);
       c.swap ||= this.btnPressed(p, 3);
+      c.driveFire ||= this.btn(p, 5);
       c.reload ||= this.btnPressed(p, 4);
       c.throttle = Math.max(c.throttle, p.buttons[7] || 0, this.btn(p, 0) ? 1 : 0, -ly > 0.3 ? 1 : 0);
       c.brake = Math.max(c.brake, p.buttons[6] || 0, this.btn(p, 1) ? 1 : 0, ly > 0.3 ? 1 : 0);
@@ -154,6 +158,7 @@ export class Input {
       c.mouseTurn += t.look.dx * 0.009;
       c.fire ||= t.held('fire');
       c.firePressed ||= t.pressed('fire');
+      c.driveFire ||= t.held('fire');
       c.dive ||= t.pressed('dive');
       c.action ||= t.pressed('action');
       c.reload ||= t.pressed('reload');
@@ -176,6 +181,11 @@ export class Input {
   backPressed() {
     if (this.anyPressed(['Escape', 'Backspace'])) return true;
     return this.pads.some((p) => this.btnPressed(p, 1));
+  }
+  /** Skip a cutscene: Backspace or the gamepad's Back/Select button. */
+  skipPressed() {
+    if (this.anyPressed(['Backspace'])) return true;
+    return this.pads.some((p) => this.btnPressed(p, 8));
   }
   pausePressed() {
     if (this.anyPressed(['Escape', 'KeyP'])) return true;

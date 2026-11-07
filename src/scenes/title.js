@@ -49,8 +49,7 @@ export class TitleScene extends Scene {
       const c = await this.w(g.ui.menu(
         [
           ...(save ? [{ label: `CONTINUE · ${SAVE_SCENES[save.scene]}`, value: 'continue' }] : []),
-          { label: save ? 'NEW GAME · 1 PLAYER' : '1 PLAYER', value: 1 },
-          { label: save ? 'NEW GAME · 2 PLAYERS' : '2 PLAYERS · CO-OP', value: 2 },
+          { label: 'NEW GAME', value: 'new' },
           { label: 'SCENE SELECT', value: 'select' },
           { label: 'CONTROLS', value: 'controls' },
         ],
@@ -63,23 +62,37 @@ export class TitleScene extends Scene {
         await this.w(g.ui.fade(1, 0.6));
         return g.goto(save.scene);
       }
-      if (c === 'select') {
-        const sc = await this.w(g.ui.menu(
-          [
-            { label: 'COLD OPEN & CREDITS', value: 'credits' },
-            { label: "THE CAPTAIN'S OFFICE", value: 'briefing' },
-            { label: 'THE L.A. RIVER CHASE', value: 'chase' },
-            { label: "THE DUKE'S WAREHOUSE", value: 'warehouse' },
-            { label: 'BACK', value: null },
-          ],
-          { cls: 'low', title: 'SCENE SELECT' },
-        ));
-        if (!sc) continue;
-        const pl = await this.w(g.ui.menu([{ label: '1 PLAYER', value: 1 }, { label: '2 PLAYERS · CO-OP', value: 2 }], { cls: 'low' }));
-        return this.start(pl, sc);
+      if (c === 'new') {
+        const pl = await this.players(save ? `Starting over replaces your saved spot: <b>${SAVE_SCENES[save.scene]}</b>.` : '');
+        if (pl) return this.start(pl, 'credits');
+        continue;
       }
-      return this.start(c, 'credits');
+      if (c === 'select') {
+        for (;;) {
+          const sc = await this.w(g.ui.menu(
+            [
+              { label: 'COLD OPEN & CREDITS', value: 'credits' },
+              { label: "THE CAPTAIN'S OFFICE", value: 'briefing' },
+              { label: 'THE L.A. RIVER CHASE', value: 'chase' },
+              { label: "THE DUKE'S WAREHOUSE", value: 'warehouse' },
+              { label: '◂ BACK', value: null },
+            ],
+            { cls: 'low', title: 'SCENE SELECT', back: null },
+          ));
+          if (!sc) break;
+          const pl = await this.players('');
+          if (pl) return this.start(pl, sc);
+        }
+      }
     }
+  }
+
+  /** 1 or 2 players, or null for BACK. */
+  players(text) {
+    return this.w(this.game.ui.menu(
+      [{ label: '1 PLAYER', value: 1 }, { label: '2 PLAYERS · CO-OP', value: 2 }, { label: '◂ BACK', value: null }],
+      { cls: 'low', title: "WHO'S ON THE CASE?", text, back: null },
+    ));
   }
 
   async start(players, scene) {

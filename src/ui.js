@@ -16,7 +16,7 @@ export class UI {
   constructor(game) {
     this.game = game;
     this.root = document.getElementById('ui');
-    const names = ['scene', 'hud', 'letterbox', 'sub', 'dialog', 'toast', 'wfm', 'card', 'menu', 'fade'];
+    const names = ['scene', 'hud', 'letterbox', 'sub', 'dialog', 'toast', 'wfm', 'card', 'cutbar', 'menu', 'fade'];
     this.root.innerHTML = names.map((n) => `<div id="layer-${n}"></div>`).join('');
     this.L = {};
     for (const n of names) this.L[n] = document.getElementById('layer-' + n);
@@ -27,6 +27,19 @@ export class UI {
     rot.className = 'rotate';
     rot.textContent = 'TURN YOUR PHONE SIDEWAYS FOR THE BEST VIEW';
     this.root.appendChild(rot);
+    // MENU / SKIP buttons shown during dialogue and cutscenes
+    this.L.cutbar.innerHTML = '<button class="tc cb cb-menu" data-c="menu">☰ MENU</button><button class="tc cb cb-skip" data-c="skip">SKIP ▸▸</button>';
+    for (const b of this.L.cutbar.querySelectorAll('button')) {
+      b.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const s = this.game.scene;
+        if (!s || this.menuState || this.game.paused) return;
+        if (b.dataset.c === 'skip') { this.game.audio.sfx('confirm'); s.skip(); } else this.game.pause();
+      });
+    }
+    this.cutbarOn = false;
+    this.hurrying = false;
     this.dialog = null;
     this.menuState = null;
     this.subQueue = [];
@@ -39,6 +52,21 @@ export class UI {
     this.letterbox(false);
     this.dialog = null;
     this.menuState = null;
+    this.hurrying = false;
+  }
+
+  /** Skip requested: drop the current line and any typed cards so the script's awaits finish now. */
+  hurry() {
+    this.hurrying = true;
+    this.L.card.innerHTML = '';
+    const d = this.dialog;
+    if (d) { this.dialog = null; this.L.dialog.innerHTML = ''; d.resolve(); }
+  }
+  endSkip() {
+    this.hurrying = false;
+    this.L.card.innerHTML = '';
+    this.L.dialog.innerHTML = '';
+    this.dialog = null;
   }
 
   // ---------------------------------------------------------- fades & bars
@@ -54,6 +82,7 @@ export class UI {
 
   // ---------------------------------------------------------- dialogue
   say(who, text, opts = {}) {
+    if (this.hurrying) return Promise.resolve();
     return new Promise((resolve) => {
       const sp = SPEAKERS[who] || SPEAKERS.narrator;
       const el = document.createElement('div');
@@ -112,11 +141,12 @@ export class UI {
     this.L.card.appendChild(el);
     const full = lines.join('\n');
     for (let i = 1; i <= full.length; i++) {
+      if (this.hurrying) break;
       el.textContent = full.slice(0, i);
       if (full[i - 1] !== ' ' && full[i - 1] !== '\n') this.game.audio.blip(900, 'square');
       await this.game.realWait(0.045);
     }
-    await this.game.realWait(hold);
+    if (!this.hurrying) await this.game.realWait(hold);
     el.remove();
   }
 
@@ -131,7 +161,7 @@ export class UI {
 
   // ---------------------------------------------------------- menus
   /** items: [{label, value}] ; returns chosen value */
-  menu(items, { title = '', text = '', cls = '', foot = '', html = '' } = {}) {
+  menu(items, { title = '', text = '', cls = '', foot = '', html = '', back } = {}) {
     return new Promise((resolve) => {
       const el = document.createElement('div');
       el.className = 'menu ' + cls;
@@ -141,7 +171,7 @@ export class UI {
       this.L.menu.innerHTML = '';
       this.L.menu.appendChild(el);
       const btns = [...el.querySelectorAll('button')];
-      const st = (this.menuState = { el, items, btns, sel: 0, age: 0, resolve });
+      const st = (this.menuState = { el, items, btns, sel: 0, age: 0, resolve, back });
       const refresh = () => btns.forEach((b, i) => b.classList.toggle('sel', i === st.sel));
       st.refresh = refresh;
       refresh();
@@ -159,6 +189,15 @@ export class UI {
     this.game.audio.sfx('confirm');
     st.resolve(st.items[st.sel].value);
   }
+  /** Pick the menu's back value (Esc / Backspace / B). */
+  back() {
+    const st = this.menuState;
+    if (!st) return;
+    this.menuState = null;
+    st.el.remove();
+    this.game.audio.sfx('menu');
+    st.resolve(st.back);
+  }
   closeMenu() {
     if (this.menuState) { this.menuState.el.remove(); this.menuState = null; }
   }
@@ -166,7 +205,8 @@ export class UI {
   update(dt) {
     const input = this.game.input;
     const d = this.dialog;
-    if (d) {
+    const m0 = this.menuState;
+    if (d && !m0) {
       d.age += dt;
       if (!d.done) {
         d.shown = Math.min(d.full.length, d.shown + dt * 48);
@@ -188,6 +228,11 @@ export class UI {
       const nav = input.navPressed();
       if (nav) { m.sel = (m.sel + nav + m.items.length) % m.items.length; m.refresh(); this.game.audio.sfx('menu', 0.5); }
       if (m.age > 0.2 && (input.anyPressed(['Enter', 'Space', 'NumpadEnter']) || input.pads.some((p) => input.btnPressed(p, 0) || input.btnPressed(p, 9)))) this.choose();
+      else if (m.age > 0.2 && m.back !== undefined && input.backPressed()) this.back();
     }
+    // cutscene buttons
+    const s = this.game.scene;
+    const on = !!(s && s.canSkip() && !this.menuState && !this.game.paused && !this.game.failed);
+    if (on !== this.cutbarOn) { this.cutbarOn = on; this.L.cutbar.classList.toggle('on', on); }
   }
 }

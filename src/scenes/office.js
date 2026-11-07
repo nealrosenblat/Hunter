@@ -112,6 +112,15 @@ export class OfficeScene extends Scene {
 
   async briefing() {
     const g = this.game;
+    await this.cut(() => this.briefingLines(), async () => {
+      g.audio.stopMusic(0.4);
+      await this.w(g.ui.fade(1, 0.4));
+      g.goto('chase');
+    });
+  }
+
+  async briefingLines() {
+    const g = this.game;
     await this.w(g.ui.fade(0, 0.8));
     await this.w(g.ui.locationCard(['METRO POLICE · DIVISION 7', "CAPTAIN BRANNIGAN'S OFFICE", '8:15 PM']));
     await this.line('captain', 'Hammer. Delgado. Sit down.', 'wide');
@@ -144,6 +153,22 @@ export class OfficeScene extends Scene {
 
   async verdict() {
     const g = this.game;
+    await this.cut(() => this.verdictLines(), () => {
+      g.ui.fade(0, 0.2);
+      this.poses.captain = 'idle';
+      this.poses.hammer = 'idle';
+      this.talking = null;
+    });
+    const gr = grade(g.stats);
+    this.setShot('wide');
+    await this.showCard(gr);
+    g.audio.stopMusic(0.8);
+    await this.w(g.ui.fade(1, 0.7));
+    g.goto('ending');
+  }
+
+  async verdictLines() {
+    const g = this.game;
     const s = g.stats;
     const fruit = s.items['FRUIT CART'] || 0;
     await this.w(g.ui.fade(0, 0.8));
@@ -173,11 +198,6 @@ export class OfficeScene extends Scene {
     const gr = grade(s);
     await this.line('captain', GRADE_LINES[gr.letter], 'captain', { captain: gr.letter <= 'B' ? 'idle' : 'raise' });
     this.poses.captain = 'idle';
-    this.setShot('wide');
-    await this.showCard(gr);
-    g.audio.stopMusic(0.8);
-    await this.w(g.ui.fade(1, 0.7));
-    g.goto('ending');
   }
 
   showCard(gr) {

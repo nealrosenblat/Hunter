@@ -39,7 +39,8 @@ export const CONTROLS_HTML = `
     <kbd>Shift</kbd> dramatic dive<br>
     <kbd>F</kbd> kick door / interact<br>
     <kbd>Tab</kbd> swap partner · <kbd>Esc</kbd> pause<br>
-    Driving: <kbd>F</kbd> honks the horn (why not)</div>
+    Driving: <kbd>Space</kbd>/<kbd>Click</kbd> fires Gerald out the window · <kbd>F</kbd> horn<br>
+    <kbd>Backspace</kbd> skips a cutscene</div>
   <div><h3>2 PLAYERS · ONE KEYBOARD</h3>
     <b>P1 Hammer</b>: same as left (WASD + mouse)<br>
     <b>P2 Delgado</b>: <kbd>↑ ↓</kbd> move, <kbd>← →</kbd> turn,<br>
@@ -50,13 +51,14 @@ export const CONTROLS_HTML = `
     Tap to start, choose and advance dialogue.<br>
     Left thumb: move · drag the right side to turn<br>
     Buttons: <b>FIRE</b>, <b>DIVE</b>, <b>KICK</b>, <b>RELOAD</b>, <b>SWAP</b><br>
-    Driving: auto-gas, steer with the left thumb, pull back to brake<br>
-    ❚❚ pauses. Hold your phone sideways.</div>
+    Driving: auto-gas, steer with the left thumb, pull back to brake, hold <b>FIRE</b> to shoot<br>
+    <b>SKIP ▸▸</b> and <b>☰ MENU</b> appear during dialogue · ❚❚ pauses. Hold your phone sideways.</div>
   <div><h3>GAMEPAD</h3>
     <kbd>L-stick</kbd> move · <kbd>R-stick</kbd> turn<br>
     <kbd>RT</kbd>/<kbd>A</kbd> fire / gas · <kbd>LT</kbd> brake<br>
     <kbd>B</kbd> dive · <kbd>X</kbd> interact · <kbd>LB</kbd> reload<br>
-    <kbd>Y</kbd> swap · <kbd>Start</kbd> pause<br>
+    <kbd>Y</kbd> swap · <kbd>Start</kbd> pause · <kbd>Back</kbd> skip cutscene<br>
+    Driving: <kbd>RT</kbd> gas · <kbd>RB</kbd> fire Gerald<br>
     Two pads? Each player gets one.</div>
 </div>
 <p style="font-size:.85em;opacity:.8">Aim assist is generous, just like 1997. Click the screen in the warehouse to use mouse-look. <kbd>M</kbd> mutes.</p>`;
@@ -106,6 +108,8 @@ class Game {
 
   realWait(sec) { return new Promise((r) => setTimeout(r, sec * 1000)); }
   wait(sec) { return new Promise((r) => this.timers.push({ t: this.time + sec, r })); }
+  /** Resolve every pending game-time wait now (used when skipping a cutscene). */
+  flushTimers() { const t = this.timers; this.timers = []; t.forEach((x) => x.r()); }
   slowmo(scale, dur) { this.timeScale = scale; this.slowT = dur; }
 
   goto(name, params = {}) {
@@ -149,22 +153,27 @@ class Game {
 
   async pause() {
     if (this.paused || this.failed) return;
+    const s = this.scene;
     this.paused = true;
     this.input.releaseLock();
     this.audio.sfx('menu');
-    const choice = await this.ui.menu(
-      [{ label: 'RESUME', value: 'resume' }, { label: 'RESTART SCENE', value: 'restart' }, { label: 'CONTROLS', value: 'controls' }, { label: 'QUIT TO TITLE', value: 'quit' }],
-      { title: "WE'LL BE RIGHT BACK", text: 'Stay tuned for more <i>Hammer &amp; Delgado</i>.', cls: 'bars', foot: 'ESC / START TO RESUME' },
-    );
-    if (!this.paused) return;
+    const items = [{ label: 'RESUME', value: 'resume' }];
+    if (s && s.canSkip()) items.push({ label: 'SKIP SCENE ▸▸', value: 'skip' });
+    if (s && s.pausable) items.push({ label: 'RESTART SCENE', value: 'restart' });
+    items.push({ label: 'CONTROLS', value: 'controls' }, { label: 'QUIT TO TITLE', value: 'quit' });
+    const choice = await this.ui.menu(items, {
+      title: "WE'LL BE RIGHT BACK", text: 'Stay tuned for more <i>Hammer &amp; Delgado</i>.', cls: 'bars', foot: 'ESC / START TO RESUME', back: 'resume',
+    });
+    if (!this.paused || s !== this.scene) return;
     if (choice === 'controls') { await this.showControls(); this.paused = false; return this.pause(); }
     if (choice === 'restart') return this.retry();
     if (choice === 'quit') return this.goto('title');
     this.paused = false;
+    if (choice === 'skip') s.skip();
   }
 
   showControls() {
-    return this.ui.menu([{ label: 'BACK', value: 'back' }], { title: 'CONTROLS', html: CONTROLS_HTML });
+    return this.ui.menu([{ label: 'BACK', value: 'back' }], { title: 'CONTROLS', html: CONTROLS_HTML, back: 'back' });
   }
 
   async fail(title, line) {
@@ -194,8 +203,11 @@ class Game {
     if (s) {
       if (this.paused) {
         if (this.input.pausePressed() && this.ui.menuState && this.ui.menuState.age > 0.2) { this.ui.closeMenu(); this.paused = false; }
-      } else if (s.pausable && !this.failed && !this.ui.dialog && this.input.pausePressed()) {
+      } else if (!this.failed && !this.ui.menuState && (s.canSkip() || (s.pausable && !this.ui.dialog)) && this.input.pausePressed()) {
         this.pause();
+      } else if (s.canSkip() && !this.ui.menuState && this.input.skipPressed()) {
+        this.audio.sfx('confirm');
+        s.skip();
       }
       if (!this.paused && !this.failed) {
         const dt = rdt * this.timeScale * (this.debug.fast ? 3 : 1);
