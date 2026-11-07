@@ -1,2 +1,80 @@
-# Hunter
-Hunter game
+# Hammer & Delgado
+
+**Season 1, Episode 1: "The Polyester Connection"**
+
+A browser game in the style of a late-90s Nintendo 64 title. It's an affectionate parody of 1980s TV cop shows: a tough L.A. detective with a mullet and a .44 Magnum named Gerald, his much more competent partner, a captain who keeps yelling about fruit carts, and a brown sedan that's falling apart.
+
+All of the characters, places and music are original. The music and sound effects are synthesized live in the browser, and every model and texture is generated in code. The game ships no image or audio files.
+
+## The episode
+
+1. **Cold open and credits:** a TV-style opening sequence with a synth-and-sax theme.
+2. **The Captain's office:** you're briefed on a counterfeit-jeans ring run by *the Disco Duke*.
+3. **The L.A. River chase:** drive the Brougham down a concrete river channel (shot "day-for-night"). Ram the Duke's car while Delgado shoots out the window. Hubcaps, doors and bumpers fall off as the car takes damage. Fruit carts and plate glass appear for no reason.
+4. **The Duke's warehouse:** a third-person shootout through three rooms. Kick doors in (Hammer) or open them politely (Delgado), dive in slow motion, eat donuts to heal, then fight the Disco Duke on his light-up dance floor.
+5. **The verdict:** the Captain grades your case file, including collateral damage, the Brougham's repair bill, and how many times your partner has been taken hostage this season.
+6. **Freeze frame.** Roll credits.
+
+## Players
+
+- **1 player:** you control one partner and the AI controls the other. Press **Tab** (or **Y** on a gamepad) to swap at any time.
+- **2 players, couch co-op:** split-screen in the warehouse. In the chase, P1 drives and P2 aims Delgado's shots. Two players can share one keyboard, use one keyboard and one gamepad, or use two gamepads.
+
+## Controls
+
+| | Player 1 / solo | Player 2 (shared keyboard) | Gamepad |
+|---|---|---|---|
+| Move / drive | W A S D | ↑ ↓ | Left stick (RT gas, LT brake) |
+| Turn | Mouse (click to lock), Q E or ← → | ← → | Right stick |
+| Fire | Click / Space | Enter | RT / A |
+| Dramatic dive | Shift | Right Shift | B |
+| Kick door / interact / horn | F | / | X |
+| Reload | R | . | LB |
+| Swap partner (1P) | Tab | | Y |
+| Pause | Esc / P | | Start |
+
+Aim assist is generous. Press **M** to mute.
+
+## Running it
+
+It's a static site with no build step.
+
+```bash
+npm start            # serves the folder at http://localhost:8080 (needs python3)
+```
+
+You can use any static file server. Opening `index.html` straight from disk won't work, because browsers block ES modules on `file://` URLs.
+
+### Single-file build
+
+```bash
+npm install
+npm run build        # -> dist/hammer-and-delgado.html (one self-contained file, ~700 KB)
+```
+
+That file can be double-clicked, emailed or hosted anywhere.
+
+### GitHub Pages
+
+Point Pages at the repository root on the default branch. `index.html`, `vendor/` and `src/` are everything the game needs.
+
+### Debug URL parameters
+
+- `?scene=title|credits|briefing|chase|warehouse|verdict|ending` jumps to a scene.
+- `&players=2` starts in co-op.
+- `&auto` auto-advances dialogue.
+- `&god` makes the cops invulnerable.
+- `&fast` runs the game at 3× speed.
+- `&res=480` changes the internal render height (default 240, like the real thing).
+
+## How it's built
+
+- **Three.js** (vendored in `vendor/`, MIT) renders the 3D at 240 lines, upscaled with blur for the N64 look, with distance fog, Lambert shading and blob shadows.
+- `src/models.js`: low-poly character rigs with posable arms and textured faces, the cars and the props.
+- `src/textures.js`: every texture is drawn at runtime on small canvases.
+- `src/audio.js`: a Web Audio sequencer and synths (drum machine, bass, "sax" lead, brass stabs, FM e-piano) playing the score, plus synthesized sound effects.
+- `src/scenes/`: one file per scene. `chase.js` runs the car in track-relative coordinates along a spline. `warehouse.js` has the combat, enemy AI, the AI partner, revives and the boss fight.
+
+## Disclaimer
+
+This is a parody inspired by the general style of 1980s American TV police dramas. All characters, names, places and dialogue are fictional. No real persons, police departments or roller rinks are depicted. No fruit carts were harmed. (Several were.)

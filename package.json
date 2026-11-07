@@ -1,0 +1,24 @@
+{
+  "name": "hammer-and-delgado",
+  "version": "0.1.0",
+  "description": "An N64-style browser parody of 80s TV cop shows.",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "build": "node build.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nealrosenblat/Hunter.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nealrosenblat/Hunter/issues"
+  },
+  "homepage": "https://github.com/nealrosenblat/Hunter#readme",
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "three": "^0.170.0"
+  },
+  "private": true,
+  "type": "module"
+}
