@@ -2,12 +2,12 @@ import UIKit
 import AVFoundation
 import Capacitor
 
-/// The game's screen: full screen, no status bar, home indicator fades away, and
-/// swipes from the screen edges need a second swipe (so a thumb on the joystick
+/// The game's screen: full screen and landscape, and swipes from the screen edges
+/// need a second swipe (so a thumb on the joystick
 /// doesn't throw you out of the chase).
 class GameViewController: CAPBridgeViewController {
+    // (The status bar and home indicator are hidden by Capacitor's SystemBars setting in capacitor.config.json.)
     override var prefersStatusBarHidden: Bool { true }
-    override var prefersHomeIndicatorAutoHidden: Bool { true }
     override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge { .all }
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask { .landscape }
 
